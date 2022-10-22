@@ -1,12 +1,10 @@
-import math
-
-import numpy as np
-
 import helper as h
 from Logger import Logger
 from Parameter import Parameters
 
 import pandas as pd
+
+from compute import Computer
 
 """ Initializing Script Parameters """
 args = Parameters(description="Framework project").parse()
@@ -34,29 +32,8 @@ def main():
     assert not gear_df.empty
     assert not db_df.empty
 
-    eff = {k: [] for k in gear_df.columns}
-    # for each sub stat and each gear, compute efficiency
-    for stat_name, r in gear_df.iterrows():
-        for col_name in gear_df.columns:
-            if math.isnan(r[col_name]):
-                continue
-
-            eff[col_name].append(compute_eff(stat_name, r[col_name], db_df))
-
-    for gear, scores in eff.items():
-        log.info(f"{gear}: {sum(scores)}")
-
-
-def compute_eff(stat_name, stat_val, db_df):
-    """
-    compute efficiency of gear for each sub stat
-    :return: efficiency val
-    """
-    # COMPUTE FOR INDIVIDUAL EFFICIENCY SUB STAT USED FOR GEAR
-    # 10 * (ATK% - LOWESTSubStatVal) / (MAXSubStatVal - LOWESTSubStatVal)
-    min_val = db_df['BLUE']['Min'][stat_name]
-    max_val = db_df['GOLD']['Max'][stat_name]
-    return 10 * ((stat_val - min_val) / (max_val - min_val))
+    com = Computer(gear_df, db_df, log)
+    com.run()
 
 
 if __name__ == '__main__':
