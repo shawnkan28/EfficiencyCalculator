@@ -1,0 +1,12 @@
+SubStat,Weapon,Core,Shield,Booster,Block,Chip
+ATK,,134,,,192,134
+ATK %,22.5,26.5,,,13.8,
+HP,,,,,,635
+HP %,9.3,,14.2,,,
+DEF,,,,,,
+DEF %,17.3,,12.4,,,
+SPD,,10,11,,,
+CRIT,,,10.3,,,10.2
+CRIT DMG,10.8,17.8,,,24.0,20.5
+STATUS ACC,,,,,,
+STATUS RES,,,,,,
