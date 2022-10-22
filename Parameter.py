@@ -23,8 +23,8 @@ class Parameters:
 
         """ Proj Arguments """
         self.parser.add_argument('--gear_stat', type=lambda x: Path(x).absolute(),
-                                 help="File Path to Gear stat csv file",
-                                 default="./Gear Stats.csv")
+                                 help="csv structure of stats",
+                                 default="./struct.csv")
 
         self.parser.add_argument('--db', type=lambda x: Path(x).absolute(),
                                  help="Database Path",

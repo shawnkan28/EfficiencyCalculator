@@ -5,6 +5,7 @@ from Parameter import Parameters
 import pandas as pd
 
 from compute import Computer
+import gui
 
 """ Initializing Script Parameters """
 args = Parameters(description="Framework project").parse()
@@ -32,8 +33,7 @@ def main():
     assert not gear_df.empty
     assert not db_df.empty
 
-    com = Computer(gear_df, db_df, log)
-    com.run()
+    gui.run(gear_df, db_df, log)
 
 
 if __name__ == '__main__':

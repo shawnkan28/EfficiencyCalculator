@@ -13,6 +13,14 @@ from cryptography.fernet import Fernet
 from pandas.tseries.offsets import BDay
 
 
+def is_float(element) -> bool:
+    try:
+        float(element)
+        return True
+    except ValueError:
+        return False
+
+
 def get_ext(file_path):
     fp = file_path
     if isinstance(file_path, str):
