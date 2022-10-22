@@ -1,4 +1,5 @@
 import PyQt5.QtWidgets as qtw
+import PyQt5.QtGui as qtg
 import helper as h
 
 
@@ -12,6 +13,7 @@ class GUI(qtw.QWidget):
 
     def run(self):
         self.setWindowTitle("Artery Gear Efficiency Calculator")
+        self.setWindowIcon(qtg.QIcon("./logo.png"))
         self._set_layout()
         self.show()
 
@@ -21,10 +23,10 @@ class GUI(qtw.QWidget):
             r = self._render()
             self.ly.setLayout(r)
 
-            grid = qtw.QVBoxLayout()
-            grid.addWidget(self.ly)
+            wrapper = qtw.QVBoxLayout()
+            wrapper.addWidget(self.ly)
 
-            self.setLayout(grid)
+            self.setLayout(wrapper)
 
             button = qtw.QPushButton("Submit")
             self.layout().addWidget(button)
@@ -50,15 +52,23 @@ class GUI(qtw.QWidget):
         layout.addWidget(qtw.QLabel("CRIT"), 1, 5)
         layout.addWidget(qtw.QLabel("ATK %"), 1, 6)
 
-        # Column 1 Sub Stat Type
-        for i, name, in enumerate(self.stat_names):
-            layout.addWidget(qtw.QLabel(f"{name.upper()}: "), 2 + i, 0)
+        # Row Efficiency Score
+        self.eff_output = {}
+        layout.addWidget(qtw.QLabel("Max Efficiency Score=40: "), 2, 0)
+        for i, gear_name in enumerate(self.gear_names):
+            label = qtw.QLabel("0")
+            self.eff_output[gear_name] = label
+            layout.addWidget(label, 2, i + 1)
 
         self.inputs = self._set_textbox(layout)
 
         return layout
 
-    def _set_textbox(self, layout, start_row=2, start_col=1):
+    def _set_textbox(self, layout, start_row=3, start_col=1):
+        # Column 1 Sub Stat Type
+        for i, name, in enumerate(self.stat_names):
+            layout.addWidget(qtw.QLabel(f"{name.upper()}: "), start_row + i, 0)
+
         inputs = {k: {} for k in self.stat_names}
 
         # Rows
@@ -91,7 +101,8 @@ class GUI(qtw.QWidget):
                 eff[gear_name].append(self._compute_eff(stat_name, float(_input)))
 
         for gear, scores in eff.items():
-            self.log.info(f"{gear} Efficiency Score: {round(sum(scores), 2)} / 40")
+            score = round(sum(scores), 2) if sum(scores) >= 0 else 0
+            self.eff_output[gear].setText(str(score))
 
     def _compute_eff(self, stat_name, stat_val):
         """
