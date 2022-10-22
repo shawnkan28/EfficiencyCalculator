@@ -1,14 +1,22 @@
-import PyQt5.QtWidgets as qtw
 import PyQt5.QtGui as qtg
+import PyQt5.QtWidgets as qtw
+from logic import Logic
+
 import helper as h
 
 
 class GUI(qtw.QWidget):
-    def __init__(self, struct_df, db, log):
+    def __init__(self, log, args):
         super().__init__()
-        self.gear_names = struct_df.columns.to_list()
-        self.stat_names = struct_df.index.to_list()
-        self.db = db
+        self.logic = Logic(args, log)
+
+        dfs = self.logic.get_db({
+            args.gear_stat: {"index_col": 0},
+            args.db: {"header": [0, 1], "index_col":0}
+        })
+        self.gear_names = dfs["struct"].columns.to_list()
+        self.stat_names = dfs['struct'].index.to_list()
+        self.db = dfs['db']
         self.log = log
 
     def run(self):
@@ -17,21 +25,29 @@ class GUI(qtw.QWidget):
         self._set_layout()
         self.show()
 
-    def _set_layout(self, _type="grid"):
-        if _type == "grid":
-            self.ly = qtw.QGroupBox("Efficiency Calculator")
-            r = self._render()
-            self.ly.setLayout(r)
+    def _set_layout(self):
+        self.grid = qtw.QGroupBox("Efficiency Calculator")
+        r = self._render()
+        self.grid.setLayout(r)
 
-            wrapper = qtw.QVBoxLayout()
-            wrapper.addWidget(self.ly)
+        wrapper = qtw.QVBoxLayout()
 
-            self.setLayout(wrapper)
+        # add dropdown list
+        cb = qtw.QComboBox()
+        cb.addItem("Test")
+        cb.addItem("Test2")
+        wrapper.addWidget(cb)
 
-            button = qtw.QPushButton("Submit")
-            self.layout().addWidget(button)
+        # Grid
+        wrapper.addWidget(self.grid)
 
-            button.clicked.connect(self._compute)
+        # Add submit btn
+        button = qtw.QPushButton("Submit")
+        wrapper.addWidget(button)
+
+        button.clicked.connect(self._compute)
+
+        self.setLayout(wrapper)
 
     def _render(self):
         layout = qtw.QGridLayout()
@@ -41,7 +57,7 @@ class GUI(qtw.QWidget):
         # row header 1
         layout.addWidget(qtw.QLabel("Gear Input: "), 0, 0)
         for i, name in enumerate(self.gear_names):
-            layout.addWidget(qtw.QLabel(name.upper()), 0, i+1)
+            layout.addWidget(qtw.QLabel(name.upper()), 0, i + 1)
 
         # Row header 2
         layout.addWidget(qtw.QLabel("Main Stat: "), 1, 0)
@@ -98,30 +114,18 @@ class GUI(qtw.QWidget):
                     self.log.error(f"There is a non number @ Gear: {gear_name.upper()} Sub Stat: {stat_name.upper()}")
                     return
 
-                eff[gear_name].append(self._compute_eff(stat_name, float(_input)))
+                eff[gear_name].append(self.logic.compute_eff(stat_name, float(_input), self.db))
 
         for gear, scores in eff.items():
             score = round(sum(scores), 2) if sum(scores) >= 0 else 0
             self.eff_output[gear].setText(str(score))
 
-    def _compute_eff(self, stat_name, stat_val):
-        """
-        compute efficiency of gear for each sub stat
-        :return: efficiency val
-        """
-        # COMPUTE FOR INDIVIDUAL EFFICIENCY SUB STAT USED FOR GEAR
-        # 10 * (ATK% - LOWESTSubStatVal) / (MAXSubStatVal - LOWESTSubStatVal)
-        min_val = self.db['BLUE']['Min'][stat_name]
-        max_val = self.db['GOLD']['Max'][stat_name]
-        return 10 * ((stat_val - min_val) / (max_val - min_val))
 
-
-def run(struct_df, db, log):
+def run(log, args):
     app = qtw.QApplication([])
 
-    gui = GUI(struct_df, db, log)
+    gui = GUI(log, args)
     gui.run()
 
     # Run the App
     app.exec_()
-
