@@ -30,6 +30,14 @@ class Parameters:
                                  help="Database Path",
                                  default="./db.csv")
 
+        self.parser.add_argument('--base_url', type=str,
+                                 help="base url to crawl info from. If url not working will use local files",
+                                 default="https://www.arterygear.info/")
+
+        self.parser.add_argument('--out_dir', type=lambda x: Path(x).absolute(),
+                                 help="Store data.",
+                                 default=Path(os.path.realpath(os.path.dirname(__file__)), "var"))
+
         return self.parser.parse_args()
 
     def _default_args(self):

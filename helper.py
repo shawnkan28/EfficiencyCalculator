@@ -5,12 +5,42 @@ import re
 from base64 import urlsafe_b64encode
 from datetime import timedelta
 from pathlib import Path
+import pathlib
 
 import bcrypt
 import keyring
 import pandas as pd
 from cryptography.fernet import Fernet
+import os
 from pandas.tseries.offsets import BDay
+
+
+def clean_logs(path: pathlib.Path, num_days=7, log=None) -> None:
+    """
+    check log folder and keep only a certain number of days worth of logs
+    use the latest log date as start counter.
+    :param path: path to folder for cleaning
+    :param num_days: num of days worth of logs to keep
+    :param log: print in log file if exists, number of files removed
+    :return:
+    """
+    data_list = []
+
+    for log in path.iterdir():
+        m_timestamp = log.stat().st_mtime
+        time = dt.datetime.fromtimestamp(m_timestamp)
+        data_list.append({"path": log, "m_date": time})
+
+    df = pd.DataFrame(data_list)
+    df.sort_values(by='m_date', inplace=True, ascending=False)
+
+    min_date = date_delta(df.iloc[0]["m_date"], delta=-num_days, out_fmt=None)
+    df = df.loc[df["m_date"] < min_date]
+
+    for i, r in df.iterrows():
+        if log:
+            log.debug(f"Delete Log: {r['path']}")
+        os.remove(r['path'])
 
 
 def is_float(element) -> bool:
@@ -106,7 +136,7 @@ def sort_num_string(data_list):
     return data_list
 
 
-def date_delta(date=None, delta=0, out_fmt="%Y%m%d", in_fmt=None, biz_day=False):
+def date_delta(date=None, delta=0, out_fmt=None, in_fmt=None, biz_day=False):
     """
     Get Date or Date difference
     :param date: datetime object or string, date you want to perform operator on, default get current date

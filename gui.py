@@ -1,8 +1,8 @@
 import PyQt5.QtGui as qtg
 import PyQt5.QtWidgets as qtw
-from logic import Logic
 
 import helper as h
+from logic import Logic
 
 
 class GUI(qtw.QWidget):
@@ -12,12 +12,18 @@ class GUI(qtw.QWidget):
 
         dfs = self.logic.get_db({
             args.gear_stat: {"index_col": 0},
-            args.db: {"header": [0, 1], "index_col":0}
+            args.db: {"header": [0, 1], "index_col": 0}
         })
         self.gear_names = dfs["struct"].columns.to_list()
         self.stat_names = dfs['struct'].index.to_list()
         self.db = dfs['db']
         self.log = log
+
+        # Opening JSON file
+        self.char_db = self.logic.read_json(args.out_dir / 'processed_char.json')
+        self.ele_list = sorted([x for x in self.char_db.keys()])
+
+        self.thumb = args.out_dir / "thumb"
 
     def run(self):
         self.setWindowTitle("Artery Gear Efficiency Calculator")
@@ -32,11 +38,24 @@ class GUI(qtw.QWidget):
 
         wrapper = qtw.QVBoxLayout()
 
+        # Set character icon
+        pixmap = qtg.QPixmap(str(self.thumb / f"{self.ele_list[0]}.png"))
+        self.char_label = qtw.QLabel()
+        self.char_label.setPixmap(pixmap)
+        self.char_label.resize(pixmap.width(), pixmap.height())
+        wrapper.addWidget(self.char_label)
+
         # add dropdown list
-        cb = qtw.QComboBox()
-        cb.addItem("Test")
-        cb.addItem("Test2")
-        wrapper.addWidget(cb)
+        self.cb = qtw.QComboBox()
+        self._add_cb_elements(self.cb)
+        self.cb.currentIndexChanged.connect(self._on_cb_change)
+        # Set to searchable combo box
+        self.cb.setEditable(True)
+        # completer only work for editable combo boxes. QComboBox.NoInsert prevents insertion of the search text
+        self.cb.setInsertPolicy(qtw.QComboBox.NoInsert)
+        # change completion mode of the default completer from InlineCompletion to PopupCompletion
+        self.cb.completer().setCompletionMode(qtw.QCompleter.PopupCompletion)
+        wrapper.addWidget(self.cb)
 
         # Grid
         wrapper.addWidget(self.grid)
@@ -119,6 +138,15 @@ class GUI(qtw.QWidget):
         for gear, scores in eff.items():
             score = round(sum(scores), 2) if sum(scores) >= 0 else 0
             self.eff_output[gear].setText(str(score))
+
+    def _add_cb_elements(self, cb):
+        for ele in self.ele_list:
+            cb.addItem(ele)
+
+    def _on_cb_change(self):
+        char_name = self.cb.currentText()
+        pixmap = qtg.QPixmap(str(self.thumb / f"{char_name}.png"))
+        self.char_label.setPixmap(pixmap)
 
 
 def run(log, args):
