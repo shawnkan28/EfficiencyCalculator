@@ -41,6 +41,7 @@ class GUI(qtw.QWidget):
         self.setWindowIcon(qtg.QIcon("./logo.png"))
         self._full()
         self._add_listener()
+        self._load_data()
         self.show()
 
     def _add_listener(self):
@@ -112,7 +113,7 @@ class GUI(qtw.QWidget):
 
         for key, widgets in self.stat_inputs.items():
             if type(widgets) is dict:
-                if key in ['base', 'goal', 'final']:  # save stats
+                if key in ['base', 'goal']:  # save stats
                     json_data = self._save_stats(widgets, json_data, char_name, key)
                 elif key == 'gear':  # save gear set
                     for _set, set_widget in widgets.items():
@@ -125,6 +126,38 @@ class GUI(qtw.QWidget):
 
         self.logic.write_json(self.save_file, json_data)
         self.log.info("Saved Character Stats.")
+
+    def _load_data(self):
+        char_name = self.cb.currentText()
+
+        if not self.save_file.is_file():
+            return
+
+        saved_data = self.logic.read_json(self.save_file)
+        char = saved_data.get(char_name)
+        if char is None:
+            return
+
+        # set stats
+        for stat_type in ['base', 'goal']:
+            for stat, val in char['stat'][stat_type].items():
+                self.stat_inputs[stat_type][stat.upper()].setText(val)
+
+        # set gear sets
+        for set_num in ['set1', 'set2', 'set3']:
+            self.stat_inputs['gear'][set_num].setCurrentText(char['sets'][set_num])
+
+        # set Gear SubStats
+        for gear in self.gear_names:
+            if gear.upper() in ['BOOSTER', 'BLOCK', 'CHIP']:
+                self.stat_inputs[gear].setCurrentText(char['gear'][gear.lower()]['cb_val'])
+
+            for stat, val in char['gear'][gear.lower()].items():
+                if stat == 'cb_val':
+                    continue
+                self.stat_inputs[stat.upper()][gear].setText(val)
+
+        self._compute()
 
     @staticmethod
     def _save_stats(data, j_data, char_name, stat_type):
@@ -381,6 +414,7 @@ class GUI(qtw.QWidget):
             tb = self.stat_inputs['base'][stat_name]
             tb.setText(val)
 
+        self._load_data()
         self._compute()
 
     @staticmethod
