@@ -46,6 +46,15 @@ class Logic:
 
         out = {}
         for entry in tqdm.tqdm(char_data, total=len(char_data), desc="Processing Char"):
+            entry['attributes']['ATK'] = entry['attributes'].pop("atk")
+            entry['attributes']['HP'] = entry['attributes'].pop("hp")
+            entry['attributes']['DEF'] = entry['attributes'].pop("def")
+            entry['attributes']['SPD'] = entry['attributes'].pop("spd")
+            entry['attributes']['CRIT'] = entry['attributes'].pop("crit")
+            entry['attributes']['CRIT DMG'] = entry['attributes'].pop("critDMG")
+            entry['attributes']['STATUS ACC'] = entry['attributes'].pop("hit")
+            entry['attributes']['STATUS RES'] = entry['attributes'].pop("res")
+
             out[entry['shortName']] = {
                 'fullName': entry['fullName'],
                 'imgPath': entry['cardImage']['localFile']['childImageSharp']['gatsbyImageData']['images']['fallback'][

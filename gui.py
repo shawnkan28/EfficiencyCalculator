@@ -38,13 +38,6 @@ class GUI(qtw.QWidget):
 
         wrapper = qtw.QVBoxLayout()
 
-        # Set character icon
-        pixmap = qtg.QPixmap(str(self.thumb / f"{self.ele_list[0]}.png"))
-        self.char_label = qtw.QLabel()
-        self.char_label.setPixmap(pixmap)
-        self.char_label.resize(pixmap.width(), pixmap.height())
-        wrapper.addWidget(self.char_label)
-
         # add dropdown list
         self.cb = qtw.QComboBox()
         self._add_cb_elements(self.cb)
@@ -57,6 +50,10 @@ class GUI(qtw.QWidget):
         self.cb.completer().setCompletionMode(qtw.QCompleter.PopupCompletion)
         wrapper.addWidget(self.cb)
 
+        # header includes character icon and character base stats
+        header = self._add_header()
+        wrapper.addLayout(header)
+
         # Grid
         wrapper.addWidget(self.grid)
 
@@ -67,6 +64,67 @@ class GUI(qtw.QWidget):
         button.clicked.connect(self._compute)
 
         self.setLayout(wrapper)
+
+    def _add_header(self):
+        layout = qtw.QHBoxLayout()
+        self.stat_inputs = {"base": {}, "goal": {}, "final": {}}
+
+        # Set character icon
+        pixmap = qtg.QPixmap(str(self.thumb / f"{self.ele_list[0]}.png"))
+        self.char_label = qtw.QLabel()
+        self.char_label.setPixmap(pixmap)
+        self.char_label.resize(pixmap.width(), pixmap.height())
+        layout.addWidget(self.char_label)
+
+        # Character Base Stats
+        attr = self.char_db[self.ele_list[0]]['attr']
+        for name, val in attr.items():
+            tb = qtw.QLineEdit()
+            tb.setObjectName(f"base {name}")
+            tb.setText(val)
+            self.stat_inputs["base"][name] = tb
+            attr[name] = [qtw.QLabel(name.upper() + ":"), tb]
+        b_stats = self._char_stats("Base Stats", attr)
+
+        # Character Goal Stats
+        goal_attr = attr.copy()
+        for name, val in goal_attr.items():
+            tb = qtw.QLineEdit()
+            tb.setObjectName(f"goal {name}")
+            self.stat_inputs["goal"][name] = tb
+            tb.setText("0")
+            goal_attr[name] = [qtw.QLabel(name.upper() + ":"), tb]
+        g_stats = self._char_stats("Goal Stats", goal_attr)
+
+        # Character Final Stats
+        final_attr = attr.copy()
+        for name, val in final_attr.items():
+            tb = qtw.QLineEdit()
+            tb.setObjectName(f"final {name}")
+            self.stat_inputs["final"][name] = tb
+            total_stat = int(attr[name][1].text())
+            tb.setText(str(total_stat))
+            final_attr[name] = [qtw.QLabel(name.upper() + ":"), tb]
+        f_stats = self._char_stats("Final Stats", final_attr)
+
+        layout.addWidget(b_stats)
+        layout.addWidget(g_stats)
+        layout.addWidget(f_stats)
+
+        return layout
+
+    @staticmethod
+    def _char_stats(group_name, data):
+        border = qtw.QGroupBox(group_name)
+        grid = qtw.QGridLayout()
+        grid.setColumnStretch(1, 4)
+
+        for i, (name, widget) in enumerate(data.items()):
+            grid.addWidget(widget[0], i, 0)
+            grid.addWidget(widget[1], i, 1)
+
+        border.setLayout(grid)
+        return border
 
     def _render(self):
         layout = qtw.QGridLayout()
@@ -124,6 +182,8 @@ class GUI(qtw.QWidget):
         eff = {k: [] for k in self.gear_names}
 
         for stat_name in self.stat_names:
+            gear_vals = []
+
             for gear_name in self.gear_names:
                 _input = self.inputs[stat_name][gear_name].text()
                 if _input == "":  # if empty field don't compute
@@ -133,20 +193,37 @@ class GUI(qtw.QWidget):
                     self.log.error(f"There is a non number @ Gear: {gear_name.upper()} Sub Stat: {stat_name.upper()}")
                     return
 
+                gear_vals.append(float(_input))
                 eff[gear_name].append(self.logic.compute_eff(stat_name, float(_input), self.db))
+
+            self._compute_stats(gear_vals, stat_name)
 
         for gear, scores in eff.items():
             score = round(sum(scores), 2) if sum(scores) >= 0 else 0
             self.eff_output[gear].setText(str(score))
+
+    def _compute_stats(self, stats, name):
+        if "%" in name:
+            pass
+        else:
+            return sum(stats) + self.stat_inputs['base'][name]
+
+
 
     def _add_cb_elements(self, cb):
         for ele in self.ele_list:
             cb.addItem(ele)
 
     def _on_cb_change(self):
+        # change image
         char_name = self.cb.currentText()
         pixmap = qtg.QPixmap(str(self.thumb / f"{char_name}.png"))
         self.char_label.setPixmap(pixmap)
+
+        # change base stat
+        for stat_name, val in self.char_db[char_name]['attr'].items():
+            tb = self.stat_inputs['base'][stat_name]
+            tb.setText(val)
 
 
 def run(log, args):
