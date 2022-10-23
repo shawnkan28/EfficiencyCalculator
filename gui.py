@@ -46,6 +46,9 @@ class GUI(qtw.QWidget):
 
     def _add_listener(self):
         for key, widgets in self.stat_inputs.items():
+            if key == 'final':
+                continue
+
             if type(widgets) is dict:
                 for gear, gear_widget in widgets.items():
                     if "set" in gear:
@@ -363,14 +366,22 @@ class GUI(qtw.QWidget):
 
             main_stat, p_main_stat = self._get_main_stat(stat_name)
 
-            set_stat = [
+            p_set_stat = [
                 self.set_bonus['BONUS'][stat_name]
                 for _set in ['set1', 'set2', 'set3']
                 if self.stat_inputs['gear'][_set].currentText() == stat_name
+                and stat_name in ['SPD', 'ATK', 'HP', 'DEF']
             ]
 
-            fixed_stats = f_sub_stats + main_stat
-            perc_stats = p_sub_stats + set_stat + p_main_stat
+            f_set_stat = [
+                self.set_bonus['BONUS'][stat_name]
+                for _set in ['set1', 'set2', 'set3']
+                if self.stat_inputs['gear'][_set].currentText() == stat_name
+                and stat_name in ['CRIT DMG', 'STATUS ACC', 'STATUS RES', 'CRIT']
+            ]
+
+            fixed_stats = f_sub_stats + main_stat + f_set_stat
+            perc_stats = p_sub_stats + p_set_stat + p_main_stat
 
             total_stats = base_stat * (sum(perc_stats) / 100) + sum(fixed_stats) + base_stat
 
