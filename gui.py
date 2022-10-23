@@ -115,6 +115,8 @@ class GUI(qtw.QWidget):
             json_data = h.nested_dict()
 
         for key, widgets in self.stat_inputs.items():
+            if key == "final":
+                continue
             if type(widgets) is dict:
                 if key in ['base', 'goal']:  # save stats
                     json_data = self._save_stats(widgets, json_data, char_name, key)
@@ -131,27 +133,34 @@ class GUI(qtw.QWidget):
         self.log.info("Saved Character Stats.")
 
     def _load_data(self):
-        char_name = self.cb.currentText()
+        char_name = self.cb.currentText().lower()
 
         if not self.save_file.is_file():
+            self.log.warning(f"Unable to find path. No data to load. {self.save_file}")
             return
 
         saved_data = self.logic.read_json(self.save_file)
         char = saved_data.get(char_name)
         if char is None:
+            self.log.warning(f"No Save Data for Character: {char_name}")
             return
+
+        self.log.info(f"Loading Character: {char_name}")
 
         # set stats
         for stat_type in ['base', 'goal']:
+            self.log.info(f"Loading Stats: {stat_type}")
             for stat, val in char['stat'][stat_type].items():
                 self.stat_inputs[stat_type][stat.upper()].setText(val)
 
         # set gear sets
         for set_num in ['set1', 'set2', 'set3']:
+            self.log.info(f"Loading Sets: {set_num}")
             self.stat_inputs['gear'][set_num].setCurrentText(char['sets'][set_num])
 
         # set Gear SubStats
         for gear in self.gear_names:
+            self.log.info(f"Loading Gear: {gear}")
             if gear.upper() in ['BOOSTER', 'BLOCK', 'CHIP']:
                 self.stat_inputs[gear].setCurrentText(char['gear'][gear.lower()]['cb_val'])
 
@@ -417,6 +426,7 @@ class GUI(qtw.QWidget):
     def _on_cb_change(self):
         # change image
         char_name = self.cb.currentText()
+        self.log.info(f"Changing Character: {char_name}")
         pixmap = qtg.QPixmap(str(self.thumb / f"{char_name}.png"))
         self.char_label.setPixmap(pixmap)
 
