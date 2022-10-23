@@ -262,7 +262,7 @@ class GUI(qtw.QWidget):
             base_stat = float(base_widget.text()) if h.is_float(base_widget.text()) else 0
 
             f_sub_stats = self.stat_inputs.get(stat_name)
-            if f_sub_stats is None:  # DUAL stat dont have so need to check if is DUAL
+            if f_sub_stats is None:  # DUAL stat don't have so needed to check if is DUAL
                 continue
 
             # Fixed Sub Stat
@@ -293,6 +293,8 @@ class GUI(qtw.QWidget):
             perc_stats = p_sub_stats + set_stat + p_main_stat
 
             total_stats = base_stat * (sum(perc_stats) / 100) + sum(fixed_stats) + base_stat
+
+            self.stat_inputs['final'][stat_name].setText(str(round(total_stats, 2)))
 
     def _get_main_stat(self, stat_name):
         main_stat = [
