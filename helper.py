@@ -13,6 +13,11 @@ import pandas as pd
 from cryptography.fernet import Fernet
 import os
 from pandas.tseries.offsets import BDay
+import collections
+
+
+def nested_dict():
+    return collections.defaultdict(nested_dict)
 
 
 def clean_logs(path: pathlib.Path, num_days=7, log=None) -> None:

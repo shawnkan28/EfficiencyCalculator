@@ -1,5 +1,5 @@
 import math
-
+import collections
 import PyQt5.QtCore as qtc
 import PyQt5.QtGui as qtg
 import PyQt5.QtWidgets as qtw
@@ -32,6 +32,7 @@ class GUI(qtw.QWidget):
         self.ele_list = sorted([x for x in self.char_db.keys()])
 
         self.thumb = args.out_dir / "thumb"
+        self.save_file = args.out_dir / "saved_stats.json"
 
         self.stat_inputs = {"base": {}, "goal": {}, "final": {}, 'gear': {}}
 
@@ -39,7 +40,19 @@ class GUI(qtw.QWidget):
         self.setWindowTitle("Artery Gear Efficiency Calculator")
         self.setWindowIcon(qtg.QIcon("./logo.png"))
         self._full()
+        self._add_listener()
         self.show()
+
+    def _add_listener(self):
+        for key, widgets in self.stat_inputs.items():
+            if type(widgets) is dict:
+                for gear, gear_widget in widgets.items():
+                    if "set" in gear:
+                        gear_widget.currentIndexChanged.connect(self._on_value_change)
+                    else:
+                        gear_widget.textChanged.connect(self._on_value_change)
+            else:
+                widgets.currentIndexChanged.connect(self._on_value_change)
 
     def _full(self):
         self.eff_calc = qtw.QGroupBox("Efficiency Calculator")
@@ -76,13 +89,48 @@ class GUI(qtw.QWidget):
         # Grid
         wrapper.addWidget(self.eff_calc)
 
-        # Add submit btn
-        button = qtw.QPushButton("Submit")
+        # Add Save btn
+        button = qtw.QPushButton("Save")
         wrapper.addWidget(button)
 
-        button.clicked.connect(self._compute)
+        button.clicked.connect(self._save_char)
 
         self.setLayout(wrapper)
+
+    def _save_char(self):
+        char_name = self.cb.currentText()
+
+        if self.save_file.is_file():
+            j_data = self.logic.read_json(self.save_file)
+            json_data = h.nested_dict()
+            for key, val in j_data.items():
+                for key2, val2 in val.items():
+                    for key3, val3 in val2.items():
+                        json_data[key][key2][key3] = val3
+        else:
+            json_data = h.nested_dict()
+
+        for key, widgets in self.stat_inputs.items():
+            if type(widgets) is dict:
+                if key in ['base', 'goal', 'final']:  # save stats
+                    json_data = self._save_stats(widgets, json_data, char_name, key)
+                elif key == 'gear':  # save gear set
+                    for _set, set_widget in widgets.items():
+                        json_data[char_name.lower()]['sets'][_set] = set_widget.currentText()
+                else:
+                    for gear, gear_widget in widgets.items():
+                        json_data[char_name.lower()]['gear'][gear.lower()][key.lower()] = gear_widget.text()
+            else:
+                json_data[char_name.lower()]['gear'][key.lower()]['cb_val'] = widgets.currentText()
+
+        self.logic.write_json(self.save_file, json_data)
+        self.log.info("Saved Character Stats.")
+
+    @staticmethod
+    def _save_stats(data, j_data, char_name, stat_type):
+        for stat, val in data.items():
+            j_data[char_name.lower()]['stat'][stat_type][stat.lower()] = val.text()
+        return j_data
 
     def _set_gear_set_cb(self):
         border = qtw.QGroupBox("Gear Sets")
@@ -117,15 +165,14 @@ class GUI(qtw.QWidget):
 
         border.setLayout(layout)
 
-        # on change dropdown list
-        for _set in [cb1, cb2, cb3]:
-            _set.currentIndexChanged.connect(self._on_gear_set_change)
-
         return border
 
-    def _on_gear_set_change(self):
-        pass
-        # compute()
+    def _on_value_change(self):
+        """
+        On change any text value,
+        :return:
+        """
+        self._compute()
 
     def _add_header(self):
         layout = qtw.QHBoxLayout()
@@ -333,6 +380,8 @@ class GUI(qtw.QWidget):
         for stat_name, val in self.char_db[char_name]['attr'].items():
             tb = self.stat_inputs['base'][stat_name]
             tb.setText(val)
+
+        self._compute()
 
     @staticmethod
     def _char_stats(group_name, data):
