@@ -10,3 +10,9 @@ COMPUTE FOR INDIVIDUAL EFFICIENCY SUBSTAT USED FOR GEAR
 
 GET AVG SUBSTAT EFFICIENCY OF ALL SUBSTAT FOR EACH GEAR
 SUM OF ALL SUBSTAT EFFICIENCY
+
+
+FINAL STAT COMPUTATION
+=ifs(and(F2="",G2="",H2=""),K15,true,K15*(1+SUM(C9:H9)+countif(F5:H5,"ATK%")*Data!D6+COUNTIF(F2:H2,"ATK")*Data!H14)+SUM(C8:H8)+COUNTIF(C5:H5,"ATK")*Data!D5)
+
+base stat * (1 + total percentage + booster/block/chip atk percentage + gear set percentage) + SUM(Gear Sub Stat) + WEAPON MAIN STAT

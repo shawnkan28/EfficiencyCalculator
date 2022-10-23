@@ -54,6 +54,7 @@ class Logic:
             entry['attributes']['CRIT DMG'] = entry['attributes'].pop("critDMG")
             entry['attributes']['STATUS ACC'] = entry['attributes'].pop("hit")
             entry['attributes']['STATUS RES'] = entry['attributes'].pop("res")
+            entry['attributes']['DUAL'] = entry['attributes'].pop("dual")
 
             out[entry['shortName']] = {
                 'fullName': entry['fullName'],

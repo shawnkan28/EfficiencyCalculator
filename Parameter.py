@@ -34,6 +34,14 @@ class Parameters:
                                  help="base url to crawl info from. If url not working will use local files",
                                  default="https://www.arterygear.info/")
 
+        self.parser.add_argument('--main_stats', type=lambda x: Path(x).absolute(),
+                                 help="File for main stat values",
+                                 default="./main_stats.csv")
+
+        self.parser.add_argument('--set_bonus', type=lambda x: Path(x).absolute(),
+                                 help="File for gear set bonus",
+                                 default="./set_bonus.csv")
+
         self.parser.add_argument('--out_dir', type=lambda x: Path(x).absolute(),
                                  help="Store data.",
                                  default=Path(os.path.realpath(os.path.dirname(__file__)), "var"))

@@ -1,3 +1,6 @@
+import math
+
+import PyQt5.QtCore as qtc
 import PyQt5.QtGui as qtg
 import PyQt5.QtWidgets as qtw
 
@@ -12,11 +15,16 @@ class GUI(qtw.QWidget):
 
         dfs = self.logic.get_db({
             args.gear_stat: {"index_col": 0},
-            args.db: {"header": [0, 1], "index_col": 0}
+            args.db: {"header": [0, 1], "index_col": 0},
+            args.main_stats: {"index_col": 0},
+            args.set_bonus: {"index_col": 0}
         })
+
         self.gear_names = dfs["struct"].columns.to_list()
         self.stat_names = dfs['struct'].index.to_list()
         self.db = dfs['db']
+        self.main_stats = dfs['main_stats'].replace(",", "", regex=True).astype(float)
+        self.set_bonus = dfs['set_bonus']
         self.log = log
 
         # Opening JSON file
@@ -25,16 +33,27 @@ class GUI(qtw.QWidget):
 
         self.thumb = args.out_dir / "thumb"
 
+        self.stat_inputs = {"base": {}, "goal": {}, "final": {}, 'gear': {}}
+
     def run(self):
         self.setWindowTitle("Artery Gear Efficiency Calculator")
         self.setWindowIcon(qtg.QIcon("./logo.png"))
-        self._set_layout()
+        self._full()
         self.show()
 
-    def _set_layout(self):
-        self.grid = qtw.QGroupBox("Efficiency Calculator")
-        r = self._render()
-        self.grid.setLayout(r)
+    def _full(self):
+        self.eff_calc = qtw.QGroupBox("Efficiency Calculator")
+        grid = self._get_grid()
+
+        eff_layout = qtw.QVBoxLayout()
+
+        # add combobox for gear set Stats
+        gear_set_layout = self._set_gear_set_cb()
+
+        eff_layout.addWidget(gear_set_layout)
+        eff_layout.addLayout(grid)
+
+        self.eff_calc.setLayout(eff_layout)
 
         wrapper = qtw.QVBoxLayout()
 
@@ -55,7 +74,7 @@ class GUI(qtw.QWidget):
         wrapper.addLayout(header)
 
         # Grid
-        wrapper.addWidget(self.grid)
+        wrapper.addWidget(self.eff_calc)
 
         # Add submit btn
         button = qtw.QPushButton("Submit")
@@ -65,9 +84,51 @@ class GUI(qtw.QWidget):
 
         self.setLayout(wrapper)
 
+    def _set_gear_set_cb(self):
+        border = qtw.QGroupBox("Gear Sets")
+        layout = qtw.QGridLayout()
+
+        l1 = qtw.QLabel("Set 1:")
+        l1.setAlignment(qtc.Qt.AlignRight)
+        layout.addWidget(l1, 0, 0)
+
+        cb1 = qtw.QComboBox()
+        cb1.addItems(['NA', 'SPD', 'ATK', 'CRIT DMG', 'HP', 'DEF', 'STATUS ACC', 'STATUS RES', 'CRIT', 'COUNTER'])
+        layout.addWidget(cb1, 0, 1)
+        self.stat_inputs['gear']['set1'] = cb1
+
+        l2 = qtw.QLabel("Set 2:")
+        l2.setAlignment(qtc.Qt.AlignRight)
+        layout.addWidget(l2, 0, 2)
+
+        cb2 = qtw.QComboBox()
+        cb2.addItems(['NA', 'HP', 'DEF', 'STATUS ACC', 'STATUS RES', 'CRIT', 'IMMU'])
+        layout.addWidget(cb2, 0, 3)
+        self.stat_inputs['gear']['set2'] = cb2
+
+        l3 = qtw.QLabel("Set 3:")
+        l3.setAlignment(qtc.Qt.AlignRight)
+        layout.addWidget(l3, 0, 4)
+
+        cb3 = qtw.QComboBox()
+        cb3.addItems(['NA', 'HP', 'DEF', 'STATUS ACC', 'STATUS RES', 'CRIT', 'IMMU'])
+        layout.addWidget(cb3, 0, 5)
+        self.stat_inputs['gear']['set3'] = cb3
+
+        border.setLayout(layout)
+
+        # on change dropdown list
+        for _set in [cb1, cb2, cb3]:
+            _set.currentIndexChanged.connect(self._on_gear_set_change)
+
+        return border
+
+    def _on_gear_set_change(self):
+        pass
+        # compute()
+
     def _add_header(self):
         layout = qtw.QHBoxLayout()
-        self.stat_inputs = {"base": {}, "goal": {}, "final": {}}
 
         # Set character icon
         pixmap = qtg.QPixmap(str(self.thumb / f"{self.ele_list[0]}.png"))
@@ -113,23 +174,8 @@ class GUI(qtw.QWidget):
 
         return layout
 
-    @staticmethod
-    def _char_stats(group_name, data):
-        border = qtw.QGroupBox(group_name)
-        grid = qtw.QGridLayout()
-        grid.setColumnStretch(1, 4)
-
-        for i, (name, widget) in enumerate(data.items()):
-            grid.addWidget(widget[0], i, 0)
-            grid.addWidget(widget[1], i, 1)
-
-        border.setLayout(grid)
-        return border
-
-    def _render(self):
+    def _get_grid(self):
         layout = qtw.QGridLayout()
-        layout.setColumnStretch(1, 4)
-        layout.setColumnStretch(2, 4)
 
         # row header 1
         layout.addWidget(qtw.QLabel("Gear Input: "), 0, 0)
@@ -141,9 +187,19 @@ class GUI(qtw.QWidget):
         layout.addWidget(qtw.QLabel("ATK"), 1, 1)
         layout.addWidget(qtw.QLabel("HP"), 1, 2)
         layout.addWidget(qtw.QLabel("DEF"), 1, 3)
-        layout.addWidget(qtw.QLabel("SPD"), 1, 4)
-        layout.addWidget(qtw.QLabel("CRIT"), 1, 5)
-        layout.addWidget(qtw.QLabel("ATK %"), 1, 6)
+
+        booster = qtw.QComboBox()
+        booster.addItems(['ATK', 'ATK %', 'HP', 'HP %', 'DEF', 'DEF %', 'SPD'])
+        layout.addWidget(booster, 1, 4)
+        self.stat_inputs['Booster'] = booster
+        scope = qtw.QComboBox()
+        scope.addItems(['ATK', 'ATK %', 'HP', 'HP %', 'DEF', 'DEF %', 'CRIT', 'CRIT DMG'])
+        layout.addWidget(scope, 1, 5)
+        self.stat_inputs['Block'] = scope
+        chip = qtw.QComboBox()
+        chip.addItems(['ATK', 'ATK %', 'HP', 'HP %', 'DEF', 'DEF %', 'STATUS ACC', 'STATUS RES'])
+        layout.addWidget(chip, 1, 6)
+        self.stat_inputs['Chip'] = chip
 
         # Row Efficiency Score
         self.eff_output = {}
@@ -153,7 +209,8 @@ class GUI(qtw.QWidget):
             self.eff_output[gear_name] = label
             layout.addWidget(label, 2, i + 1)
 
-        self.inputs = self._set_textbox(layout)
+        inputs = self._set_textbox(layout)
+        self.stat_inputs.update(inputs)
 
         return layout
 
@@ -182,10 +239,8 @@ class GUI(qtw.QWidget):
         eff = {k: [] for k in self.gear_names}
 
         for stat_name in self.stat_names:
-            gear_vals = []
-
             for gear_name in self.gear_names:
-                _input = self.inputs[stat_name][gear_name].text()
+                _input = self.stat_inputs[stat_name][gear_name].text()
                 if _input == "":  # if empty field don't compute
                     continue
 
@@ -193,22 +248,74 @@ class GUI(qtw.QWidget):
                     self.log.error(f"There is a non number @ Gear: {gear_name.upper()} Sub Stat: {stat_name.upper()}")
                     return
 
-                gear_vals.append(float(_input))
                 eff[gear_name].append(self.logic.compute_eff(stat_name, float(_input), self.db))
-
-            self._compute_stats(gear_vals, stat_name)
 
         for gear, scores in eff.items():
             score = round(sum(scores), 2) if sum(scores) >= 0 else 0
             self.eff_output[gear].setText(str(score))
 
-    def _compute_stats(self, stats, name):
-        if "%" in name:
-            pass
-        else:
-            return sum(stats) + self.stat_inputs['base'][name]
+        self._compute_stats()
 
+    def _compute_stats(self):
+        # for each stat, get input values
+        for stat_name, base_widget in self.stat_inputs["base"].items():
+            base_stat = float(base_widget.text()) if h.is_float(base_widget.text()) else 0
 
+            f_sub_stats = self.stat_inputs.get(stat_name)
+            if f_sub_stats is None:  # DUAL stat dont have so need to check if is DUAL
+                continue
+
+            # Fixed Sub Stat
+            f_sub_stats = [
+                float(widget.text()) if h.is_float(widget.text()) else 0
+                for widget in f_sub_stats.values()
+            ]
+
+            # Percentage sub stat
+            p_sub_stats = self.stat_inputs.get(stat_name + " %")
+            if p_sub_stats is not None:
+                p_sub_stats = [
+                    float(widget.text()) if h.is_float(widget.text()) else 0
+                    for widget in p_sub_stats.values()
+                ]
+            else:
+                p_sub_stats = []
+
+            main_stat, p_main_stat = self._get_main_stat(stat_name)
+
+            set_stat = [
+                self.set_bonus['BONUS'][stat_name]
+                for _set in ['set1', 'set2', 'set3']
+                if self.stat_inputs['gear'][_set].currentText() == stat_name
+            ]
+
+            fixed_stats = f_sub_stats + main_stat
+            perc_stats = p_sub_stats + set_stat + p_main_stat
+
+            total_stats = base_stat * (sum(perc_stats) / 100) + sum(fixed_stats) + base_stat
+
+    def _get_main_stat(self, stat_name):
+        main_stat = [
+            self.main_stats[stat_name][gear_name.upper()]
+            for gear_name in self.gear_names
+            # variable stats - booster/block/chip stat exist
+            if (self.stat_inputs.get(gear_name) is not None
+                and self.stat_inputs[gear_name].currentText() == stat_name)
+            # those with static stats
+            or (gear_name in ['Weapon', 'Core', 'Shield']
+                and not math.isnan(self.main_stats[stat_name][gear_name.upper()]))
+        ]
+
+        perc_stat = [
+            float(self.main_stats[stat_name + " %"][gear_name.upper()]) * 100
+            if h.is_float(self.main_stats[stat_name + " %"][gear_name.upper()]) else 0
+            for gear_name in self.gear_names
+            # variable stats - booster/block/chip stat exist
+            if (self.stat_inputs.get(gear_name) is not None
+                and self.stat_inputs[gear_name].currentText() == stat_name + " %")
+        ]
+
+        return main_stat, perc_stat
 
     def _add_cb_elements(self, cb):
         for ele in self.ele_list:
@@ -224,6 +331,18 @@ class GUI(qtw.QWidget):
         for stat_name, val in self.char_db[char_name]['attr'].items():
             tb = self.stat_inputs['base'][stat_name]
             tb.setText(val)
+
+    @staticmethod
+    def _char_stats(group_name, data):
+        border = qtw.QGroupBox(group_name)
+        grid = qtw.QGridLayout()
+
+        for i, (name, widget) in enumerate(data.items()):
+            grid.addWidget(widget[0], i, 0)
+            grid.addWidget(widget[1], i, 1)
+
+        border.setLayout(grid)
+        return border
 
 
 def run(log, args):
