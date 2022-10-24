@@ -1,5 +1,4 @@
 import math
-import collections
 import PyQt5.QtCore as qtc
 import PyQt5.QtGui as qtg
 import PyQt5.QtWidgets as qtw
@@ -34,7 +33,7 @@ class GUI(qtw.QWidget):
         self.thumb = args.out_dir / "thumb"
         self.save_file = args.out_dir / "saved_stats.json"
 
-        self.stat_inputs = {"base": {}, "goal": {}, "final": {}, 'gear': {}}
+        self.stat_inputs = {"base": {}, "goal": {}, "final": {}, 'gear': {}, 'eff_label': {}}
 
     def run(self):
         self.setWindowTitle("Artery Gear Efficiency Calculator")
@@ -47,6 +46,10 @@ class GUI(qtw.QWidget):
     def _add_listener(self):
         for key, widgets in self.stat_inputs.items():
             if key == 'final':
+                for widget in widgets.values():
+                    widget.setReadOnly(True)
+                continue
+            elif key == 'eff_label':
                 continue
 
             if type(widgets) is dict:
@@ -100,6 +103,7 @@ class GUI(qtw.QWidget):
         button.clicked.connect(self._save_char)
 
         self.setLayout(wrapper)
+        self._compute()
 
     def _save_char(self):
         char_name = self.cb.currentText()
@@ -309,7 +313,9 @@ class GUI(qtw.QWidget):
     def _set_textbox(self, layout, start_row=3, start_col=1):
         # Column 1 Sub Stat Type
         for i, name, in enumerate(self.stat_names):
-            layout.addWidget(qtw.QLabel(f"{name.upper()}: "), start_row + i, 0)
+            label = qtw.QLabel(f"{name.upper()}: ")
+            layout.addWidget(label, start_row + i, 0)
+            self.stat_inputs['eff_label'][name] = label
 
         inputs = {k: {} for k in self.stat_names}
 
@@ -395,6 +401,16 @@ class GUI(qtw.QWidget):
             total_stats = base_stat * (sum(perc_stats) / 100) + sum(fixed_stats) + base_stat
 
             self.stat_inputs['final'][stat_name].setText(str(round(total_stats, 2)))
+
+            goal_text = self.stat_inputs['goal'][stat_name].text()
+            goal_stat = float(goal_text) if h.is_float(goal_text) else 0
+
+            if goal_stat == 0:
+                self.stat_inputs['final'][stat_name].setStyleSheet("QLineEdit{background: white;}")
+            elif total_stats >= goal_stat:
+                self.stat_inputs['final'][stat_name].setStyleSheet("QLineEdit{background: lightgreen;}")
+            else:
+                self.stat_inputs['final'][stat_name].setStyleSheet("QLineEdit{background: #FFCCCB;}")
 
     def _get_main_stat(self, stat_name):
         main_stat = [
