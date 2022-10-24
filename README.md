@@ -16,3 +16,5 @@ If you have a python environment, you can run the script using python.
 If not, you can unzip dist.zip and run the main.exe file in it.
 
 db.csv consist of the min-max of each sub-stat.
+
+![img.png](img.png)
