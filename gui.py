@@ -60,15 +60,20 @@ class GUI(qtw.QWidget):
                         gear_widget.currentIndexChanged.connect(self._on_value_change)
                     else:  # efficiency text box + stats
                         gear_widget.textChanged.connect(self._on_value_change)
-                        # if key not in ['base', 'goal', 'final']:
-                        #     self.selected_eff = key
-                        #     gear_widget.clicked.connect(self._highlight_header)
+                        if key not in ['base', 'goal', 'final']:
+                            self._highlight_header(gear_widget, key)
             else:
                 widgets.currentIndexChanged.connect(self._on_value_change)
 
-    def _highlight_header(self):
-        print(self.selected_eff)
-        self.stat_inputs['eff_label'][self.selected_eff].setStyleSheet("QLabel{background: green;}")
+    def _highlight_header(self, widget, status_name):
+        widget.clicked.connect(
+            lambda: self.stat_inputs['eff_label'][status_name].setStyleSheet("QLabel{background: lightgreen;}")
+        )
+        widget.clicked.connect(
+            lambda: [wid.setStyleSheet("")
+                     for stat, wid in self.stat_inputs['eff_label'].items()
+                     if stat != status_name]
+        )
 
     def _full(self):
         self.eff_calc = qtw.QGroupBox("Efficiency Calculator")
@@ -322,7 +327,7 @@ class GUI(qtw.QWidget):
     def _set_textbox(self, layout, start_row=3, start_col=1):
         # Column 1 Sub Stat Type
         for i, name, in enumerate(self.stat_names):
-            label = qtw.QLabel(f"{name.upper()}: ")
+            label = ClickableLabel(f"{name.upper()}: ")
             layout.addWidget(label, start_row + i, 0)
             self.stat_inputs['eff_label'][name] = label
 
@@ -496,3 +501,13 @@ class ClickableLineEdit(qtw.QLineEdit):
             self.clicked.emit()
         else:
             super().mousePressEvent(event)
+
+
+class ClickableLabel(qtw.QLabel):
+    clicked = qtc.pyqtSignal()
+
+    def mousePressEvent(self, ev: qtg.QMouseEvent) -> None:
+        if ev.button() == qtc.Qt.LeftButton:
+            self.clicked.emit()
+        else:
+            super().mousePressEvent(ev)
