@@ -34,7 +34,7 @@ class GUI(qtw.QWidget):
         self.thumb = args.out_dir / "thumb"
         self.save_file = args.out_dir / "saved_stats.json"
 
-        self.stat_inputs = {"base": {}, "goal": {}, "final": {}, 'gear': {}, 'eff_label': {}}
+        self.stat_inputs = {"base": {}, "goal": {}, "final": {}, 'gear': {}, 'eff_label': {}, "notes": {}}
 
     def run(self):
         self.setWindowTitle("Artery Gear Efficiency Calculator")
@@ -60,7 +60,7 @@ class GUI(qtw.QWidget):
                         gear_widget.currentIndexChanged.connect(self._on_value_change)
                     else:  # efficiency text box + stats
                         gear_widget.textChanged.connect(self._on_value_change)
-                        if key not in ['base', 'goal', 'final']:
+                        if key in self.stat_names:
                             self._highlight_header(gear_widget, key)
             else:
                 widgets.currentIndexChanged.connect(self._on_value_change)
@@ -334,6 +334,7 @@ class GUI(qtw.QWidget):
         inputs = {k: {} for k in self.stat_names}
 
         # Rows
+        last_row = None
         for row_i, stat_name in enumerate(self.stat_names):
             row = row_i + start_row  # 0 + 3, first row start at index 3
             for col_i, gear_name in enumerate(self.gear_names):
@@ -344,6 +345,17 @@ class GUI(qtw.QWidget):
 
                 inputs[stat_name][gear_name] = tb  # use to pull text data out
                 layout.addWidget(tb, row, col)
+            last_row = row
+
+        # create notes for each gear
+        last_row += 1
+        for col_i, gear_name in enumerate(self.gear_names):
+            ta = qtw.QPlainTextEdit()
+            self.stat_inputs['notes'][gear_name] = ta
+            layout.addWidget(ta, last_row, col_i + start_col)
+        # add label for notes
+        label = ClickableLabel("Notes: ")
+        layout.addWidget(label, last_row, 0)
 
         return inputs
 
