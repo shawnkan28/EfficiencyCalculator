@@ -1,4 +1,5 @@
 import math
+
 import PyQt5.QtCore as qtc
 import PyQt5.QtGui as qtg
 import PyQt5.QtWidgets as qtw
@@ -44,6 +45,7 @@ class GUI(qtw.QWidget):
         self.show()
 
     def _add_listener(self):
+        self.selected_eff = None
         for key, widgets in self.stat_inputs.items():
             if key == 'final':
                 for widget in widgets.values():
@@ -56,10 +58,17 @@ class GUI(qtw.QWidget):
                 for gear, gear_widget in widgets.items():
                     if "set" in gear:
                         gear_widget.currentIndexChanged.connect(self._on_value_change)
-                    else:
+                    else:  # efficiency text box + stats
                         gear_widget.textChanged.connect(self._on_value_change)
+                        # if key not in ['base', 'goal', 'final']:
+                        #     self.selected_eff = key
+                        #     gear_widget.clicked.connect(self._highlight_header)
             else:
                 widgets.currentIndexChanged.connect(self._on_value_change)
+
+    def _highlight_header(self):
+        print(self.selected_eff)
+        self.stat_inputs['eff_label'][self.selected_eff].setStyleSheet("QLabel{background: green;}")
 
     def _full(self):
         self.eff_calc = qtw.QGroupBox("Efficiency Calculator")
@@ -325,7 +334,7 @@ class GUI(qtw.QWidget):
             for col_i, gear_name in enumerate(self.gear_names):
                 col = start_col + col_i
 
-                tb = qtw.QLineEdit()
+                tb = ClickableLineEdit()
                 tb.setObjectName(f"{gear_name} {stat_name}")
 
                 inputs[stat_name][gear_name] = tb  # use to pull text data out
@@ -340,12 +349,15 @@ class GUI(qtw.QWidget):
             for gear_name in self.gear_names:
                 _input = self.stat_inputs[stat_name][gear_name].text()
                 if _input == "":  # if empty field don't compute
+                    self.stat_inputs[stat_name][gear_name].setStyleSheet("QLineEdit{background: white;}")
                     continue
 
                 if not _input.isnumeric() and not h.is_float(_input):  # if is not a number
                     self.log.error(f"There is a non number @ Gear: {gear_name.upper()} Sub Stat: {stat_name.upper()}")
+                    self.stat_inputs[stat_name][gear_name].setStyleSheet("QLineEdit{background: #FFCCCB;}")
                     return
 
+                self.stat_inputs[stat_name][gear_name].setStyleSheet("QLineEdit{background: white;}")
                 eff[gear_name].append(self.logic.compute_eff(stat_name, float(_input), self.db))
 
         for gear, scores in eff.items():
@@ -385,14 +397,14 @@ class GUI(qtw.QWidget):
                 self.set_bonus['BONUS'][stat_name]
                 for _set in ['set1', 'set2', 'set3']
                 if self.stat_inputs['gear'][_set].currentText() == stat_name
-                and stat_name in ['SPD', 'ATK', 'HP', 'DEF']
+                   and stat_name in ['SPD', 'ATK', 'HP', 'DEF']
             ]
 
             f_set_stat = [
                 self.set_bonus['BONUS'][stat_name]
                 for _set in ['set1', 'set2', 'set3']
                 if self.stat_inputs['gear'][_set].currentText() == stat_name
-                and stat_name in ['CRIT DMG', 'STATUS ACC', 'STATUS RES', 'CRIT']
+                   and stat_name in ['CRIT DMG', 'STATUS ACC', 'STATUS RES', 'CRIT']
             ]
 
             fixed_stats = f_sub_stats + main_stat + f_set_stat
@@ -418,10 +430,9 @@ class GUI(qtw.QWidget):
             for gear_name in self.gear_names
             # variable stats - booster/block/chip stat exist
             if (self.stat_inputs.get(gear_name) is not None
-                and self.stat_inputs[gear_name].currentText() == stat_name)
-            # those with static stats
-            or (gear_name in ['Weapon', 'Core', 'Shield']
-                and not math.isnan(self.main_stats[stat_name][gear_name.upper()]))
+                and self.stat_inputs[gear_name].currentText() == stat_name)  # those with static stats
+                or (gear_name in ['Weapon', 'Core', 'Shield']
+                   and not math.isnan(self.main_stats[stat_name][gear_name.upper()]))
         ]
 
         perc_stat = [
@@ -475,3 +486,13 @@ def run(log, args):
 
     # Run the App
     app.exec_()
+
+
+class ClickableLineEdit(qtw.QLineEdit):
+    clicked = qtc.pyqtSignal()
+
+    def mousePressEvent(self, event):
+        if event.button() == qtc.Qt.LeftButton:
+            self.clicked.emit()
+        else:
+            super().mousePressEvent(event)
