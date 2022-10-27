@@ -36,7 +36,7 @@ class GUI(qtw.QWidget):
 
         self.stat_inputs = {"base": {}, "goal": {}, "final": {}, 'gear': {}, 'eff_label': {}, "notes": {}}
 
-    def run(self):
+    def initUI(self):
         self.setWindowTitle("Artery Gear Efficiency Calculator")
         self.setWindowIcon(qtg.QIcon("./logo.png"))
         self._full()
@@ -141,6 +141,9 @@ class GUI(qtw.QWidget):
                 elif key == 'gear':  # save gear set
                     for _set, set_widget in widgets.items():
                         json_data[char_name.lower()]['sets'][_set] = set_widget.currentText()
+                elif key == 'notes':
+                    for gear, wid in widgets.items():
+                        json_data[char_name.lower()]['notes'][gear] = wid.toPlainText()
                 else:
                     for gear, gear_widget in widgets.items():
                         json_data[char_name.lower()]['gear'][gear.lower()][key.lower()] = gear_widget.text()
@@ -499,7 +502,7 @@ def run(log, args):
     app = qtw.QApplication([])
 
     gui = GUI(log, args)
-    gui.run()
+    gui.initUI()
 
     # Run the App
     app.exec_()
