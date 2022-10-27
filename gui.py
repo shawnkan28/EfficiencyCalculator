@@ -133,7 +133,7 @@ class GUI(qtw.QWidget):
             json_data = h.nested_dict()
 
         for key, widgets in self.stat_inputs.items():
-            if key == "final":
+            if key == "final" or key == "eff_label":
                 continue
             if type(widgets) is dict:
                 if key in ['base', 'goal']:  # save stats
@@ -143,7 +143,7 @@ class GUI(qtw.QWidget):
                         json_data[char_name.lower()]['sets'][_set] = set_widget.currentText()
                 elif key == 'notes':
                     for gear, wid in widgets.items():
-                        json_data[char_name.lower()]['notes'][gear] = wid.toPlainText()
+                        json_data[char_name.lower()]['notes'][gear.lower()] = wid.toPlainText()
                 else:
                     for gear, gear_widget in widgets.items():
                         json_data[char_name.lower()]['gear'][gear.lower()][key.lower()] = gear_widget.text()
@@ -162,33 +162,44 @@ class GUI(qtw.QWidget):
 
         saved_data = self.logic.read_json(self.save_file)
         char = saved_data.get(char_name)
+        is_empty = False
         if char is None:
             self.log.warning(f"No Save Data for Character: {char_name}")
-            return
+            is_empty = True
 
         self.log.info(f"Loading Character: {char_name}")
 
         # set stats
         for stat_type in ['base', 'goal']:
             self.log.info(f"Loading Stats: {stat_type}")
-            for stat, val in char['stat'][stat_type].items():
-                self.stat_inputs[stat_type][stat.upper()].setText(val)
+            for stat, widget in self.stat_inputs[stat_type].items():
+                widget.setText(char['stat'][stat_type][stat.lower()] if not is_empty else "")
 
         # set gear sets
         for set_num in ['set1', 'set2', 'set3']:
             self.log.info(f"Loading Sets: {set_num}")
-            self.stat_inputs['gear'][set_num].setCurrentText(char['sets'][set_num])
+            self.stat_inputs['gear'][set_num].setCurrentText(char['sets'][set_num] if not is_empty else "")
 
-        # set Gear SubStats
+        # set Gear SubStats BOOSTER/BLOCK/CHIP
         for gear in self.gear_names:
             self.log.info(f"Loading Gear: {gear}")
             if gear.upper() in ['BOOSTER', 'BLOCK', 'CHIP']:
-                self.stat_inputs[gear].setCurrentText(char['gear'][gear.lower()]['cb_val'])
+                self.stat_inputs[gear].setCurrentText(char['gear'][gear.lower()]['cb_val'] if not is_empty else "")
 
-            for stat, val in char['gear'][gear.lower()].items():
-                if stat == 'cb_val':
-                    continue
-                self.stat_inputs[stat.upper()][gear].setText(val)
+        # Set SubStat for the rest
+        for stat in self.stat_names:
+            for gear, widget in self.stat_inputs[stat].items():
+                widget.setText(char['gear'][gear.lower()][stat.lower()])
+
+            # for stat, val in char['gear'][gear.lower()].items():
+            #     if stat == 'cb_val':
+            #         continue
+            #     self.stat_inputs[stat.upper()][gear].setText(val if not is_empty else "")
+
+        # Set Notes
+        data = char.get("notes")
+        for gear, widget in self.stat_inputs['notes'].items():
+            widget.setPlainText(data[gear.lower()] if not is_empty and data is not None else "")
 
         self._compute()
 
