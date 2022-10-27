@@ -42,7 +42,12 @@ class GUI(qtw.QWidget):
         self._full()
         self._add_listener()
         self._load_data()
+        self._set_window_location()
         self.show()
+
+    def _set_window_location(self):
+        top_left = qtw.QApplication.desktop().availableGeometry().topLeft()
+        self.move(top_left)
 
     def _add_listener(self):
         self.selected_eff = None
