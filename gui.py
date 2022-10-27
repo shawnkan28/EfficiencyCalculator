@@ -7,6 +7,8 @@ import PyQt5.QtWidgets as qtw
 import helper as h
 from logic import Logic
 
+# TODO: takes awhile to load data
+
 
 class GUI(qtw.QWidget):
     def __init__(self, log, args):
