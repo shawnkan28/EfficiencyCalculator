@@ -1,19 +1,20 @@
+import collections
 import datetime as dt
 import operator
+import os
+import pathlib
 import pickle
 import re
 from base64 import urlsafe_b64encode
 from datetime import timedelta
 from pathlib import Path
-import pathlib
 
 import bcrypt
 import keyring
 import pandas as pd
+import requests
 from cryptography.fernet import Fernet
-import os
 from pandas.tseries.offsets import BDay
-import collections
 
 
 def nested_dict():
@@ -205,3 +206,14 @@ class Crypto:
 
     def decrypt(self, enc_text):
         return self.fer.decrypt(enc_text.encode()).decode()
+
+
+class Session(requests.Session):
+    def __init__(self, url_base=None):
+        super(Session, self).__init__()
+        self.url_base = url_base
+
+    def request(self, method, url, **kwargs):
+        if self.url_base is not None:
+            url = self.url_base + url
+        return super(Session, self).request(method, url, **kwargs)
