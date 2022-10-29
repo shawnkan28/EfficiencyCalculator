@@ -29,6 +29,11 @@ class Crawler:
             data = {'fullName': entry['fullName'], 'name': entry['shortName'].lower()}
             data.update({status.lower(): value for status, value in entry['attributes'].items()})
 
+            data['crit dmg'] = data.pop('critdmg')
+            data['status res'] = data.pop('res')
+            data['status acc'] = data.pop('hit')
+            data['dual'] = data.pop('dual')
+
             out_data.append(data)
 
             # if exist don't need to download

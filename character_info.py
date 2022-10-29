@@ -6,11 +6,12 @@ class CharInfo(qtw.QGroupBox):
         super().__init__("Character Info")
 
         # Usable Variables
-        self.char_df = gs.char_df
         self.thumb = gs.thumb_path
         self.log = gs.log
+        self.char_df = gs.char_df
+        self.stat_names = [x for x in self.char_df.columns if "Name" not in x]
         # used to reference widgets from one function to another
-        self.widgets = {}
+        self.widgets = {}  # TODO: change to dataframe
 
         # Show User Interface when called by parent
         self._init_ui()
@@ -21,6 +22,9 @@ class CharInfo(qtw.QGroupBox):
 
         # character selection/img
         self.layout.addLayout(self._character())
+        self.layout.addWidget(self._stats("Base Stats"))
+        self.layout.addWidget(self._stats("Goal Stats"))
+        self.layout.addWidget(self._stats("Final Stats"))
 
         # Add to screen
         self.setLayout(self.layout)
@@ -28,7 +32,7 @@ class CharInfo(qtw.QGroupBox):
     def _character(self):
         """
         Select character drop down list + Character Display Image
-        :return:
+        :return: Qtw Layout
         """
         # Declare layout
         layout = qtw.QVBoxLayout()
@@ -51,6 +55,31 @@ class CharInfo(qtw.QGroupBox):
 
         return layout
 
+    def _stats(self, box_name):
+        is_base = "Base" in box_name
+
+        border = qtw.QGroupBox(box_name)
+        # Declare layout
+        grid_layout = qtw.QGridLayout()
+
+        # Add Label and Line Entry into grid
+        row = self.char_df.loc[self.widgets['char_cb'].currentText()]
+        for i, stat in enumerate(self.stat_names):
+            # declare line Edit
+            le = qtw.QLineEdit()
+            self.widgets[f"{box_name} {stat}_le"] = le
+            if is_base:
+                le.setText(row[stat])
+
+            # add widget to grid
+            grid_layout.addWidget(qtw.QLabel(stat.upper() + " : "), i, 0)
+            grid_layout.addWidget(le, i, 1)
+
+        # add layout to widget
+        border.setLayout(grid_layout)
+
+        return border
+
     """
     On Change Events / Listener Events
     """
@@ -59,6 +88,10 @@ class CharInfo(qtw.QGroupBox):
 
         img = qtg.QPixmap(str(self.thumb / f"{name}.png"))
         self.widgets['char_pix'].setPixmap(img)
+
+        row = self.char_df.loc[name]
+        for stat in self.stat_names:
+            self.widgets[f"Base Stats {stat}_le"].setText(row[stat])
 
 
 """
