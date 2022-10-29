@@ -1,3 +1,4 @@
+import pandas as pd
 import tqdm
 
 import helper as h
@@ -18,34 +19,30 @@ class Crawler:
         char_data = rsp.json()['data']['allContentfulCharacter']['nodes']
         self.log.info(f"Total Entries pulled: {len(char_data)}")
 
-        out_data = {}
+        # Save response for viewing
+        h.write_json(save_path.parent / f"{save_path.stem}.example.json", char_data)
+
+        out_data = []
         for entry in tqdm.tqdm(char_data, total=len(char_data), desc="Processing Char"):
-            char_name = entry['shortName'].upper()
-
-            entry['attributes']['ATK'] = entry['attributes'].pop("atk")
-            entry['attributes']['HP'] = entry['attributes'].pop("hp")
-            entry['attributes']['DEF'] = entry['attributes'].pop("def")
-            entry['attributes']['SPD'] = entry['attributes'].pop("spd")
-            entry['attributes']['CRIT'] = entry['attributes'].pop("crit")
-            entry['attributes']['CRIT DMG'] = entry['attributes'].pop("critDMG")
-            entry['attributes']['STATUS ACC'] = entry['attributes'].pop("hit")
-            entry['attributes']['STATUS RES'] = entry['attributes'].pop("res")
-            entry['attributes']['DUAL'] = entry['attributes'].pop("dual")
-
             img_url = entry['cardImage']['localFile']['childImageSharp']['gatsbyImageData']['images']['fallback']['src']
-            out_data[char_name] = {
-                'fullName': entry['fullName'],
-                'attr': entry['attributes']
-            }
+
+            data = {'fullName': entry['fullName'], 'name': entry['shortName'].lower()}
+            data.update({status.lower(): value for status, value in entry['attributes'].items()})
+
+            out_data.append(data)
 
             # if exist don't need to download
-            if (thumb_path / f"{char_name}.png").is_file():
+            thumb_path.mkdir(parents=True, exist_ok=True)
+            thumb_file = thumb_path / f"{entry['shortName'].lower()}.png"
+            if thumb_file.is_file():
                 continue
 
             # download thumbnail
-            self._download_img(img_url, thumb_path / f"{char_name}.png")
+            self._download_img(img_url, thumb_file)
 
-        h.write_json(save_path, out_data)
+        df = pd.DataFrame(out_data)
+        df.set_index('name', inplace=True)
+        h.pickle_file('write', fname=save_path, data=df)
 
     def _download_img(self, url, dl_path):
         try:

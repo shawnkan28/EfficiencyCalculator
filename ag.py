@@ -16,16 +16,19 @@ h.clean_logs(log_path.parent, log=log)
 
 
 def main():
+    f_path = args.var_dir / "character_db.pickle"
+    thumb_path = args.var_dir / "thumb"
+    # pull and save character information from Server in a file
     try:
-        Crawler(args.base_url, log).all_characters(args.var_dir / "character_db.json", args.var_dir / "thumb")
+        Crawler(args.base_url, log).all_characters(f_path, thumb_path)
     except Exception as e:
         log.debug(e)
         log.warning(f"Failed to pull from website. Using Local File ...")
 
-    app()
+    app(h.pickle_file('read', fname=f_path))
 
 
-def app():
+def app(char_df):
     q_app = QtWidgets.QApplication([])
 
     window = Window()
