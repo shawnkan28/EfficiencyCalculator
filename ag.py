@@ -5,6 +5,7 @@ from Logger import Logger
 from Parameter import Parameters
 from crawler import Crawler
 from window import Window
+from getter_setter import GS
 
 """ Initializing Script Parameters """
 args = Parameters(description="Framework project").parse()
@@ -25,14 +26,20 @@ def main():
         log.debug(e)
         log.warning(f"Failed to pull from website. Using Local File ...")
 
-    app(h.pickle_file('read', fname=f_path))
+    gs = GS()
+    gs.thumb_path = thumb_path
+    gs.char_df = h.pickle_file('read', fname=f_path)
+    gs.log = log
+
+    app(gs)
 
 
-def app(char_df):
+def app(gs):
     q_app = QtWidgets.QApplication([])
 
-    window = Window()
-    window.show_()
+    # set GUI
+    window = Window(gs)
+    window.show()
 
     # Run the App
     q_app.exec_()
