@@ -7,7 +7,10 @@ import PyQt5.QtWidgets as qtw
 import helper as h
 from logic import Logic
 
-# TODO: takes awhile to load data
+# TODO:
+#  - optimize data, see if using pandas dataframe will improve processing performance.
+#  - use image recognition to fill efficiency stats
+#  - pull stat recommendation from website
 
 
 class GUI(qtw.QWidget):
@@ -196,15 +199,10 @@ class GUI(qtw.QWidget):
         # Set SubStat for the rest
         for stat in self.stat_names:
             for gear, widget in self.stat_inputs[stat].items():
-                widget.setText(char['gear'][gear.lower()][stat.lower()])
-
-            # for stat, val in char['gear'][gear.lower()].items():
-            #     if stat == 'cb_val':
-            #         continue
-            #     self.stat_inputs[stat.upper()][gear].setText(val if not is_empty else "")
+                widget.setText(char['gear'][gear.lower()][stat.lower()] if not is_empty else "")
 
         # Set Notes
-        data = char.get("notes")
+        data = char.get("notes") if char is not None else None
         for gear, widget in self.stat_inputs['notes'].items():
             widget.setPlainText(data[gear.lower()] if not is_empty and data is not None else "")
 

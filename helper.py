@@ -15,6 +15,24 @@ import pandas as pd
 import requests
 from cryptography.fernet import Fernet
 from pandas.tseries.offsets import BDay
+import json
+
+
+def write_json(out, data):
+    # Serializing json
+    json_object = json.dumps(data, indent=4)
+
+    with open(out, "w") as outfile:
+        outfile.write(json_object)
+
+
+def read_json(path):
+    # Opening JSON file
+    with open(path, 'r') as openfile:
+        # Reading from json file
+        json_data = json.load(openfile)
+
+    return json_data
 
 
 def nested_dict():
@@ -209,11 +227,36 @@ class Crypto:
 
 
 class Session(requests.Session):
-    def __init__(self, url_base=None):
+    def __init__(self, url_base=None, log=None, test_verify=False, verbose=1):
+        """
+        :param url_base:
+        :param log:
+        :param test_verify: if true will attempt verify=True if fail will run verify=False
+        """
         super(Session, self).__init__()
         self.url_base = url_base
+        self.log = log
+        self.test_verify = test_verify
+        self.verbose = verbose
 
     def request(self, method, url, **kwargs):
         if self.url_base is not None:
             url = self.url_base + url
-        return super(Session, self).request(method, url, **kwargs)
+
+        if self.test_verify:
+            try:
+                rsp = super(Session, self).request(method, url, **kwargs)
+            except requests.exceptions.SSLError:
+                if self.log is not None and self.verbose > 1:
+                    self.log.warning("SSL Verification Failed. Using verify=False")
+
+                rsp = super(Session, self).request(method, url, verify=False, **kwargs)
+        else:
+            rsp = super(Session, self).request(method, url, **kwargs)
+
+        if rsp.status_code > 400 and self.log is not None and self.verbose > 1:
+            self.log.error(f"Status Code: {rsp.status_code}, url: {rsp.url}")
+
+        return rsp
+
+

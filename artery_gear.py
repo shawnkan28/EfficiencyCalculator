@@ -1,8 +1,9 @@
-import gui
 import helper as h
 from Logger import Logger
 from Parameter import Parameters
-from logic import Logic
+from window import Window
+from PyQt5 import QtWidgets
+from crawler import Crawler
 
 """ Initializing Script Parameters """
 args = Parameters(description="Framework project").parse()
@@ -14,17 +15,24 @@ log = Logger(log_path).get_logger()
 
 
 def main():
-    logic = Logic(args, log)
     try:
-        log.info(f"Pulling from Website {args.base_url}")
-        logic.get_all_char_info()
+        data = Crawler(args.base_url, log).all_characters(args.var_dir / "character_db.json", args.var_dir / "thumb")
+        h.write_json(args.out_dir / "char_info.json", data)
     except Exception as e:
         log.debug(e)
-        log.warning(f"Failed to pull from Website. Using Local file ...")
+        log.warning(f"Failed to pull from website. Using Local File ...")
 
-    logic.process_char_info()  # to get only important info
+    app()
 
-    gui.run(log, args)
+
+def app():
+    q_app = QtWidgets.QApplication([])
+
+    window = Window()
+    window.show_()
+
+    # Run the App
+    q_app.exec_()
 
 
 if __name__ == '__main__':

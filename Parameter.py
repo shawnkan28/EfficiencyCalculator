@@ -42,10 +42,6 @@ class Parameters:
                                  help="File for gear set bonus",
                                  default="./set_bonus.csv")
 
-        self.parser.add_argument('--out_dir', type=lambda x: Path(x).absolute(),
-                                 help="Store data.",
-                                 default=Path(os.path.realpath(os.path.dirname(__file__)), "var"))
-
         return self.parser.parse_args()
 
     def _default_args(self):
