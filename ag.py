@@ -4,7 +4,7 @@ import helper as h
 from Logger import Logger
 from Parameter import Parameters
 from crawler import Crawler
-from window import Window
+from ui_window import Window
 from getter_setter import GS
 
 """ Initializing Script Parameters """

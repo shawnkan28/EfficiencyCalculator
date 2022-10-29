@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets as qtw, QtGui as qtg
-from character_info import CharInfo
+from ui_character_info import CharInfo
 
 
 class Window(qtw.QWidget):
