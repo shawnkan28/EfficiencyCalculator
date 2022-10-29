@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets as qtw, QtGui as qtg
+import pandas as pd
 
 
 class CharInfo(qtw.QGroupBox):
@@ -11,7 +12,7 @@ class CharInfo(qtw.QGroupBox):
         self.char_df = gs.char_df
         self.stat_names = [x for x in self.char_df.columns if "Name" not in x]
         # used to reference widgets from one function to another
-        self.widgets = {}  # TODO: change to dataframe
+        self.widgets = pd.Series(dtype=object)
 
         # Show User Interface when called by parent
         self._init_ui()
@@ -41,13 +42,12 @@ class CharInfo(qtw.QGroupBox):
         char_cb = cb_widget(sorted(self.char_df.index.to_list()))
         # Events
         char_cb.currentIndexChanged.connect(self._character_select_onChange)
-        # references
-        self.widgets['char_cb'] = char_cb
 
         # Character Image
         char_pix = img_widget(str(self.thumb / f"{char_cb.currentText()}.png"))
-        # references
-        self.widgets['char_pix'] = char_pix
+
+        # Add References
+        self.widgets = pd.concat([self.widgets, pd.Series([char_cb, char_pix], index=['char_cb', 'char_pix'])])
 
         # Add widget
         layout.addWidget(char_cb)
@@ -63,17 +63,22 @@ class CharInfo(qtw.QGroupBox):
         grid_layout = qtw.QGridLayout()
 
         # Add Label and Line Entry into grid
+        wid, indexes = [], []
         row = self.char_df.loc[self.widgets['char_cb'].currentText()]
         for i, stat in enumerate(self.stat_names):
             # declare line Edit
             le = qtw.QLineEdit()
-            self.widgets[f"{box_name} {stat}_le"] = le
+            wid.append(le)
+            indexes.append(f"{box_name.split(' ')[0].lower()}_{stat}_le")
             if is_base:
                 le.setText(row[stat])
 
             # add widget to grid
             grid_layout.addWidget(qtw.QLabel(stat.upper() + " : "), i, 0)
             grid_layout.addWidget(le, i, 1)
+
+        # References
+        self.widgets = pd.concat([self.widgets, pd.Series(wid, index=indexes)])
 
         # add layout to widget
         border.setLayout(grid_layout)
@@ -91,7 +96,7 @@ class CharInfo(qtw.QGroupBox):
 
         row = self.char_df.loc[name]
         for stat in self.stat_names:
-            self.widgets[f"Base Stats {stat}_le"].setText(row[stat])
+            self.widgets[f"base_{stat}_le"].setText(row[stat])
 
 
 """
