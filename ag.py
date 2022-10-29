@@ -28,10 +28,7 @@ def main():
         log.debug(e)
         log.warning(f"Failed to pull from website. Using Local File ...")
 
-    gs = GS()
-    gs.thumb_path = thumb_path
-    gs.char_df = h.pickle_file('read', fname=f_path)
-    gs.log = log
+    gs = GS(thumb_path, f_path, main_path, sub_path, log)
 
     app(gs)
 
