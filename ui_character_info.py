@@ -23,6 +23,7 @@ class CharInfo(qtw.QGroupBox):
 
         # character selection/img
         layout.addLayout(self._character())
+        # Character stats
         layout.addWidget(self._stats("Base Stats"))
         layout.addWidget(self._stats("Goal Stats"))
         layout.addWidget(self._stats("Final Stats"))

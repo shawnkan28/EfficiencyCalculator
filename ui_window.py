@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets as qtw, QtGui as qtg
 from ui_character_info import CharInfo
+from ui_efficiency_info import EffInfo
 
 
 class Window(qtw.QWidget):
@@ -17,6 +18,7 @@ class Window(qtw.QWidget):
 
         # Insert UI to layout
         layout.addWidget(CharInfo(self.gs))
+        layout.addWidget(EffInfo(self.gs))
 
         self.setLayout(layout)
         self._set_location()

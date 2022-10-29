@@ -17,11 +17,13 @@ h.clean_logs(log_path.parent, log=log)
 
 
 def main():
-    f_path = args.var_dir / "character_db.pickle"
-    thumb_path = args.var_dir / "thumb"
+    f_path, thumb_path = args.var_dir / "character_db.pickle", args.var_dir / "thumb"
+    main_path, sub_path = args.var_dir / "gear_main.pickle", args.var_dir / "gear_sub.pickle"
+    crawl = Crawler(args.base_url, log)
     # pull and save character information from Server in a file
     try:
-        Crawler(args.base_url, log).all_characters(f_path, thumb_path)
+        crawl.all_characters(f_path, thumb_path)
+        crawl.gear_stats(main_path, sub_path)
     except Exception as e:
         log.debug(e)
         log.warning(f"Failed to pull from website. Using Local File ...")

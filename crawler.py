@@ -1,5 +1,8 @@
 import pandas as pd
 import tqdm
+import numpy as np
+from bs4 import BeautifulSoup
+
 
 import helper as h
 from helper import Session
@@ -49,6 +52,22 @@ class Crawler:
         df.set_index('name', inplace=True)
         h.pickle_file('write', fname=save_path, data=df)
 
+    def gear_stats(self, main_path, sub_path):
+        self.log.info("Pulling Gear Information ...")
+        rsp = self.sess.get("/guides/gear-stats/")
+        soup = BeautifulSoup(rsp.text, "html.parser")
+
+        tables = soup.findAll("table")
+        assert len(tables) == 2, "Unable to find gear stat tables from server"
+
+        # process Gear Main Stat
+        main_df = self._gear_main(tables[0])
+        # process Gear Sub Stat Min Max
+        sub_df = self._gear_sub(tables[1])
+
+        h.pickle_file("write", fname=main_path, data=main_df)
+        h.pickle_file("write", fname=sub_path, data=sub_df)
+
     def _download_img(self, url, dl_path):
         try:
             r = self.sess.get(url)
@@ -58,3 +77,45 @@ class Crawler:
         except Exception as e:
             self.log.debug(e)
             self.log.warning(f"Unable to download images for {dl_path.stem}, url: {url}")
+
+    @staticmethod
+    def _gear_main(gms_soup):
+        for i in gms_soup.findAll('td'):
+            if "data-icon" not in str(i):
+                continue
+            i.string = i.svg['data-icon']
+
+        gms_df = pd.read_html(str(gms_soup))[0]
+        gms_df.columns = [x.split("const t")[0] for x in gms_df.columns]
+
+        for col in gms_df.columns:
+            if col in ['Stat', 'Max Value']:
+                continue
+
+            gms_df[col] = np.where(gms_df[col] == "check",
+                                   gms_df['Max Value'],
+                                   np.nan)
+        del gms_df['Max Value']
+        return gms_df
+
+    @staticmethod
+    def _gear_sub(soup):
+        df = pd.read_html(str(soup))[0]
+        df.set_index('Name', inplace=True)
+        del df['Icon']
+
+        grades = df.columns
+        sec_col = ['min', 'max']
+
+        c = pd.MultiIndex.from_product([grades, sec_col])
+        out = pd.DataFrame(columns=c)
+
+        for i, r in df.iterrows():
+            data = []
+            for color in grades:
+                d = r[color].split("-")
+                data.append(d[0].strip())
+                data.append(d[1].strip())
+
+            out.loc[i] = data
+        return out
