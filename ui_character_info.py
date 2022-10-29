@@ -19,16 +19,16 @@ class CharInfo(qtw.QGroupBox):
 
     def _init_ui(self):
         # Declare layout
-        self.layout = qtw.QHBoxLayout()
+        layout = qtw.QHBoxLayout()
 
         # character selection/img
-        self.layout.addLayout(self._character())
-        self.layout.addWidget(self._stats("Base Stats"))
-        self.layout.addWidget(self._stats("Goal Stats"))
-        self.layout.addWidget(self._stats("Final Stats"))
+        layout.addLayout(self._character())
+        layout.addWidget(self._stats("Base Stats"))
+        layout.addWidget(self._stats("Goal Stats"))
+        layout.addWidget(self._stats("Final Stats"))
 
         # Add to screen
-        self.setLayout(self.layout)
+        self.setLayout(layout)
 
     def _character(self):
         """
