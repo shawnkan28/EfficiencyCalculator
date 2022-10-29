@@ -1,6 +1,7 @@
-from helper import Session
-import helper as h
 import tqdm
+
+import helper as h
+from helper import Session
 
 
 class Crawler:
@@ -10,9 +11,9 @@ class Crawler:
 
     def all_characters(self, save_path, thumb_path):
         # init
-        rsp = self.sess.get("page-data/character-builder/page-data.json")
+        rsp = self.sess.get("/page-data/character-builder/page-data.json")
         # Get data
-        rsp = self.sess.get(f"page-data/sq/d/{rsp.json()['staticQueryHashes'][0]}.json")
+        rsp = self.sess.get(f"/page-data/sq/d/{rsp.json()['staticQueryHashes'][0]}.json")
 
         char_data = rsp.json()['data']['allContentfulCharacter']['nodes']
         self.log.info(f"Total Entries pulled: {len(char_data)}")
@@ -55,4 +56,3 @@ class Crawler:
         except Exception as e:
             self.log.debug(e)
             self.log.warning(f"Unable to download images for {dl_path.stem}, url: {url}")
-

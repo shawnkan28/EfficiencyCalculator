@@ -1,4 +1,5 @@
 import collections
+import datetime
 import datetime as dt
 import operator
 import os
@@ -52,7 +53,7 @@ def clean_logs(path: pathlib.Path, num_days=7, log=None) -> None:
 
     for log in path.iterdir():
         m_timestamp = log.stat().st_mtime
-        time = dt.datetime.fromtimestamp(m_timestamp)
+        time = datetime.datetime.fromtimestamp(m_timestamp)
         data_list.append({"path": log, "m_date": time})
 
     df = pd.DataFrame(data_list)

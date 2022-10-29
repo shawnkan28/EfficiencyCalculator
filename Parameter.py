@@ -32,7 +32,7 @@ class Parameters:
 
         self.parser.add_argument('--base_url', type=str,
                                  help="base url to crawl info from. If url not working will use local files",
-                                 default="https://www.arterygear.info/")
+                                 default="https://www.arterygear.info")
 
         self.parser.add_argument('--main_stats', type=lambda x: Path(x).absolute(),
                                  help="File for main stat values",
