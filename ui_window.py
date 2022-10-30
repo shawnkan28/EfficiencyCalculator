@@ -7,6 +7,7 @@ class Window(qtw.QWidget):
     def __init__(self, gs):
         super().__init__()
         self.gs = gs
+        self.btn = None
 
         self._init_ui()
 
@@ -23,9 +24,15 @@ class Window(qtw.QWidget):
         # Insert UI to layout
         layout.addWidget(CharInfo(self.gs))
         layout.addWidget(EffInfo(self.gs))
+        layout.addWidget(self._button())
 
         self.setLayout(layout)
 
     def _set_location(self):
         top_left = qtw.QApplication.desktop().availableGeometry().topLeft()
         self.move(top_left)
+
+    def _button(self):
+        btn = qtw.QPushButton("Save")
+        self.btn = btn
+        return btn

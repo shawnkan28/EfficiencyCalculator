@@ -25,6 +25,10 @@ class EffInfo(qtw.QGroupBox):
             s_list.append(s)
         gs.eff_widgets = pd.concat(s_list, axis=1)
 
+        # getter and setter
+        gs.var_gear_widgets = self.widgets[self.widgets.index.str.contains("_cb")]
+        gs.eff_score_widgets = self.widgets[self.widgets.index.str.contains("_eff_lbl")]
+
     def _init_ui(self):
         # Declare layout
         self.layout = qtw.QGridLayout()
@@ -37,13 +41,15 @@ class EffInfo(qtw.QGroupBox):
     def _eff_info(self):
         self.layout.addWidget(qtw.QLabel("Gear Input : "), 0, 0)
         self.layout.addWidget(qtw.QLabel("Main Stat : "), 1, 0)
+        self.layout.addWidget(qtw.QLabel("Eff Score (Max 40) : "), 2, 0)
 
         # add gear label columns + stat labels + line edits
         indexes, widgets = [], []
         for i, name in enumerate(self.gear_names):  # column
-            if i == 0:
+            if i == 0:  # if first column
                 self._sub_stat_line_edits(i, name)
 
+            # Row 2 - add
             self.layout.addWidget(qtw.QLabel(name), 0, i+1)
             # get all non-null stats for each gear
             stat_types = list(self.main_df.loc[self.main_df[name].notna()].index)
@@ -60,6 +66,11 @@ class EffInfo(qtw.QGroupBox):
                 # Add combobox to layout
                 self.layout.addWidget(gear_stat_cb, 1, i+1)
 
+            # Row 3 - add efficiency score
+            score = qtw.QLabel("0")
+            self.layout.addWidget(score, 2, i+1)
+            indexes.append(f"{name}_eff_lbl"), widgets.append(score)
+
             self._sub_stat_line_edits(i+1, name)
 
         # add widgets for reference
@@ -75,12 +86,12 @@ class EffInfo(qtw.QGroupBox):
         indexes, widgets = [], []
         for i, stat in enumerate(self.stat_names):  # row
             if col_num == 0:
-                self.layout.addWidget(qtw.QLabel(stat + " : "), i+2, col_num)
+                self.layout.addWidget(qtw.QLabel(stat + " : "), i+3, col_num)
             else:
                 eff_le = qtw.QLineEdit()
                 indexes.append(f"{gear_name}_{stat}_le"), widgets.append(eff_le)
                 # add to layout
-                self.layout.addWidget(eff_le, i + 2, col_num)
+                self.layout.addWidget(eff_le, i+3, col_num)
 
         # add reference
         self.widgets = pd.concat([self.widgets, pd.Series(widgets, index=indexes, dtype=object)])

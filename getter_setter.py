@@ -12,8 +12,10 @@ class GS:
         self._gs_df = h.pickle_file("read", fname=sub_path)
         self._log = log
 
-        self._stat_widgets = pd.Series(dtype=object)
-        self._eff_widgets = pd.Series(dtype=object)
+        self._stat_widgets = pd.DataFrame()
+        self._eff_widgets = pd.DataFrame()
+        self._var_gear_widgets = pd.Series(dtype=object)
+        self._eff_score_widgets = pd.Series(dtype=object)
 
     @property
     def thumb_path(self) -> pathlib.PurePath:
@@ -70,3 +72,19 @@ class GS:
     @eff_widgets.setter
     def eff_widgets(self, widgets):
         self._eff_widgets = widgets
+
+    @property
+    def var_gear_widgets(self):
+        return self._var_gear_widgets
+
+    @var_gear_widgets.setter
+    def var_gear_widgets(self, widgets):
+        self._var_gear_widgets = widgets
+
+    @property
+    def eff_score_widgets(self):
+        return self._eff_score_widgets
+
+    @eff_score_widgets.setter
+    def eff_score_widgets(self, widgets):
+        self._eff_score_widgets = widgets
