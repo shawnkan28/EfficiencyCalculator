@@ -7,7 +7,11 @@ class Window(qtw.QWidget):
     def __init__(self, gs):
         super().__init__()
         self.gs = gs
+
         self._init_ui()
+
+        self._set_location()
+        self.show()
 
     def _init_ui(self):
         self.setWindowTitle("Artery Gear Efficiency Calculator")
@@ -21,8 +25,6 @@ class Window(qtw.QWidget):
         layout.addWidget(EffInfo(self.gs))
 
         self.setLayout(layout)
-        self._set_location()
-        self.show()
 
     def _set_location(self):
         top_left = qtw.QApplication.desktop().availableGeometry().topLeft()

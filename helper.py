@@ -19,6 +19,14 @@ from pandas.tseries.offsets import BDay
 import json
 
 
+def change_indexing(widgets, stat_type):
+    s = widgets[widgets.index.str.contains(stat_type)]
+    new_index = [x.replace(f"{stat_type}_", "") for x in s.index]
+    s.index = new_index
+    s.name = stat_type
+    return s
+
+
 def write_json(out, data):
     # Serializing json
     json_object = json.dumps(data, indent=4)
@@ -51,10 +59,10 @@ def clean_logs(path: pathlib.Path, num_days=7, log=None) -> None:
     """
     data_list = []
 
-    for log in path.iterdir():
-        m_timestamp = log.stat().st_mtime
+    for log_path in path.iterdir():
+        m_timestamp = log_path.stat().st_mtime
         time = datetime.datetime.fromtimestamp(m_timestamp)
-        data_list.append({"path": log, "m_date": time})
+        data_list.append({"path": log_path, "m_date": time})
 
     df = pd.DataFrame(data_list)
     df.sort_values(by='m_date', inplace=True, ascending=False)

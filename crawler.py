@@ -96,6 +96,7 @@ class Crawler:
                                    gms_df['Max Value'],
                                    np.nan)
         del gms_df['Max Value']
+        gms_df.set_index("Stat", inplace=True)
         return gms_df
 
     @staticmethod

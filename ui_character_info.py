@@ -1,5 +1,7 @@
 from PyQt5 import QtWidgets as qtw, QtGui as qtg
 import pandas as pd
+import widgets as w
+import helper as h
 
 
 class CharInfo(qtw.QGroupBox):
@@ -16,6 +18,12 @@ class CharInfo(qtw.QGroupBox):
 
         # Show User Interface when called by parent
         self._init_ui()
+
+        # add getter setter references
+        s1 = h.change_indexing(self.widgets, 'final')
+        s2 = h.change_indexing(self.widgets, 'goal')
+        s3 = h.change_indexing(self.widgets, 'base')
+        gs.stat_widgets = pd.concat([s1, s2, s3], axis=1)
 
     def _init_ui(self):
         # Declare layout
@@ -40,12 +48,12 @@ class CharInfo(qtw.QGroupBox):
         layout = qtw.QVBoxLayout()
 
         # Character Drop down list
-        char_cb = cb_widget(sorted(self.char_df.index.to_list()))
+        char_cb = w.cb_widget(sorted(self.char_df.index.to_list()), searchable=True)
         # Events
         char_cb.currentIndexChanged.connect(self._character_select_onChange)
 
         # Character Image
-        char_pix = img_widget(str(self.thumb / f"{char_cb.currentText()}.png"))
+        char_pix = w.img_widget(str(self.thumb / f"{char_cb.currentText()}.png"))
 
         # Add References
         self.widgets = pd.concat([self.widgets, pd.Series([char_cb, char_pix], index=['char_cb', 'char_pix'])])
@@ -98,26 +106,3 @@ class CharInfo(qtw.QGroupBox):
         row = self.char_df.loc[name]
         for stat in self.stat_names:
             self.widgets[f"base_{stat}_le"].setText(row[stat])
-
-
-"""
-Simplify Widgets
-"""
-
-
-def img_widget(path):
-    img = qtg.QPixmap(path)
-    img_lbl = qtw.QLabel()
-    img_lbl.setPixmap(img)
-    img_lbl.resize(img.width(), img.height())
-    return img_lbl
-
-
-def cb_widget(_list):
-    cb = qtw.QComboBox()
-    cb.addItems(_list)
-    # make searchable
-    cb.setEditable(True)
-    cb.setInsertPolicy(qtw.QComboBox.NoInsert)
-    cb.completer().setCompletionMode(qtw.QCompleter.PopupCompletion)
-    return cb
