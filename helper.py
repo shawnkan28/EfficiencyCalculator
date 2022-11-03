@@ -67,8 +67,11 @@ def clean_logs(path: pathlib.Path, num_days=7, log=None) -> None:
     df = pd.DataFrame(data_list)
     df.sort_values(by='m_date', inplace=True, ascending=False)
 
-    min_date = date_delta(df.iloc[0]["m_date"], delta=-num_days, out_fmt=None)
-    df = df.loc[df["m_date"] < min_date]
+    # min_date = date_delta(df.iloc[0]["m_date"], delta=-num_days, out_fmt=None)
+    # df = df.loc[df["m_date"] < min_date]
+
+    # keep only 7 files in log
+    df = df.iloc[num_days:]
 
     for i, r in df.iterrows():
         if log:
