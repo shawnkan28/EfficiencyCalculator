@@ -1,6 +1,7 @@
 import collections
 import datetime
 import datetime as dt
+import inspect
 import operator
 import os
 import pathlib
@@ -17,6 +18,13 @@ import requests
 from cryptography.fernet import Fernet
 from pandas.tseries.offsets import BDay
 import json
+
+
+def trace(offset=0, lvl=1):
+    offset += 1
+    return f"{os.path.basename(inspect.stack()[offset].filename)}" \
+           f":{inspect.stack()[offset].lineno}:" \
+           + f" {inspect.stack()[offset].function}()" if lvl > 0 else ""
 
 
 def change_indexing(widgets, stat_type):

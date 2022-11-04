@@ -32,7 +32,7 @@ class Parameters:
 
         self.parser.add_argument('--base_url', type=str,
                                  help="base url to crawl info from. If url not working will use local files",
-                                 default="https://www.arterygear.info")
+                                 default="https://www.prydwen.gg")
 
         self.parser.add_argument('--main_stats', type=lambda x: Path(x).absolute(),
                                  help="File for main stat values",
@@ -41,6 +41,9 @@ class Parameters:
         self.parser.add_argument('--set_bonus', type=lambda x: Path(x).absolute(),
                                  help="File for gear set bonus",
                                  default="./set_bonus.csv")
+        self.parser.add_argument('--asset_dir', type=lambda x: Path(x).absolute(),
+                                 help="Path to asset dir. things like logo is kept there.",
+                                 default="./assets")
 
         return self.parser.parse_args()
 
