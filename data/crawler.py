@@ -14,11 +14,13 @@ class Crawler:
         self.sess = Session(url_base=url, test_verify=True, verbose=2, log=env.log)
         self.e = env
 
-    def extract_character_info(self, save_path, thumb_path):
+    def extract_character_info(self, save_path, character_list, thumb_path, stat_path):
         """
         Crawl from website, process files and output a pickle dataframe
         :param save_path:
+        :param character_list: where to save list of characters from website
         :param thumb_path:
+        :param stat_path: where to save list of available stats for characters
         :return:
         """
         try:
@@ -57,9 +59,15 @@ class Crawler:
             df = pd.DataFrame(out_data)
             df.set_index('name', inplace=True)
             h.pickle_file('write', fname=save_path, data=df)
+
+            char_list = df.index.to_list()
+            stat_list = [x for x in df.columns.to_list() if x != "fullName"]
+            h.pickle_file("write", fname=character_list, data=char_list)
+            h.pickle_file("write", fname=stat_path, data=stat_list)
         except:
             self.e.log.debug(f"{h.trace()} {traceback.format_exc()}")
-            self.e.log.error(f"{h.trace()} Unable to crawl artery gear Character stats website. Will use local data if exist.")
+            self.e.log.error(f"{h.trace()} Unable to crawl artery gear Character stats website. "
+                             f"Will use local data if exist.")
 
     def extract_gear_info(self, gear_main_path, gear_sub_path):
         """
@@ -85,7 +93,8 @@ class Crawler:
             h.pickle_file("write", fname=gear_sub_path, data=sub_df)
         except:
             self.e.log.debug(f"{h.trace()} {traceback.format_exc()}")
-            self.e.log.error(f"{h.trace()} Unable to crawl artery gear Gear Info website. Will use local data if exist.")
+            self.e.log.error(f"{h.trace()} Unable to crawl artery gear Gear "
+                             f"Info website. Will use local data if exist.")
 
     def extract_gear_set_info(self, sets_path):
         """
@@ -111,7 +120,8 @@ class Crawler:
             h.pickle_file("write", sets_path, data=df)
         except:
             self.e.log.debug(f"{h.trace()} {traceback.format_exc()}")
-            self.e.log.error(f"{h.trace()} Unable to crawl artery gear Gear Sets website. Will use local data if exist.")
+            self.e.log.error(f"{h.trace()} Unable to crawl artery gear Gear Sets website. "
+                             f"Will use local data if exist.")
 
     def _download_img(self, url, dl_path):
         try:

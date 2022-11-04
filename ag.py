@@ -21,16 +21,18 @@ def main():
 
     c = Crawler(args.base_url, env)
 
-    env.thumb = args.var_dir / "thumb"
-    env.db_char = args.var_dir / "char_info_db.pickle"
-    env.db_main = args.var_dir / "gear_main.pickle"
-    env.db_sub = args.var_dir / "gear_sub.pickle"
-    env.db_set = args.var_dir / "gear_sets.pickle"
-    env.logo = args.asset_dir / "logo.png"
+    env.thumb, char_list = args.var_dir / "thumb", args.var_dir / "char_list.pickle"
+    db_char, db_main = args.var_dir / "char_info_db.pickle", args.var_dir / "gear_main.pickle"
+    db_sub, db_set = args.var_dir / "gear_sub.pickle", args.var_dir / "gear_sets.pickle"
+    env.logo, avail_stats = args.asset_dir / "logo.png", args.var_dir / "stats_list.pickle"
 
-    c.extract_character_info(env.db_char, env.thumb)
-    c.extract_gear_info(env.db_main, env.db_sub)
-    c.extract_gear_set_info(env.db_set)
+    c.extract_character_info(db_char, char_list, env.thumb, avail_stats)
+    c.extract_gear_info(db_main, db_sub)
+    c.extract_gear_set_info(db_set)
+
+    env.char_list, env.db_char = char_list, db_char
+    env.db_main, env.db_sub = db_main, db_sub
+    env.db_set, env.avail_stats = db_set, avail_stats
 
     app(env)
 

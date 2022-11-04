@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets as qtw, QtGui as qtg
+from ui.char_info import CharInfo
 
 
 class Window(qtw.QWidget):
@@ -19,7 +20,12 @@ class Window(qtw.QWidget):
         This initializes all widgets into the screen.
         :return:
         """
-        pass
+        layout = qtw.QVBoxLayout()
+
+        # add character info ui
+        layout.addWidget(CharInfo(self.e))
+
+        self.setLayout(layout)
 
     def _set_location(self, loc):
         if loc == "top_left":
