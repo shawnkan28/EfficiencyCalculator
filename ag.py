@@ -25,14 +25,18 @@ def main():
     db_char, db_main = args.var_dir / "char_info_db.pickle", args.var_dir / "gear_main.pickle"
     db_sub, db_set = args.var_dir / "gear_sub.pickle", args.var_dir / "gear_sets.pickle"
     env.logo, avail_stats = args.asset_dir / "logo.png", args.var_dir / "stats_list.pickle"
+    gear_names = args.var_dir / "gear_names.pickle"
 
     c.extract_character_info(db_char, char_list, env.thumb, avail_stats)
-    c.extract_gear_info(db_main, db_sub)
+    c.extract_gear_info(db_main, db_sub, gear_names)
     c.extract_gear_set_info(db_set)
 
     env.char_list, env.db_char = char_list, db_char
     env.db_main, env.db_sub = db_main, db_sub
-    env.db_set, env.avail_stats = db_set, avail_stats
+    env.db_set, env.gear_names = db_set, gear_names
+
+    env.char_stats = [x for x in env.db_char.columns if "fullName" not in x]
+    env.gear_stats = env.db_sub.index.to_list()
 
     app(env)
 

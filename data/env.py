@@ -7,14 +7,16 @@ import helper as h
 class Env:
     def __init__(self, log):
         self._log = log
-        self._char_list = list()
         self._thumb = pathlib.Path()
         self._db_char = pd.DataFrame()
         self._db_main = pd.DataFrame()
         self._db_sub = pd.DataFrame()
         self._db_set = pd.DataFrame()
         self._logo = pathlib.Path()
-        self._avail_stats = list()
+        self._char_list = list()
+        self._gear_names = list()
+        self._char_stats = list()
+        self._gear_stats = list()
 
     @property
     def log(self) -> logging.Logger:
@@ -27,6 +29,14 @@ class Env:
     @char_list.setter
     def char_list(self, val):
         self._char_list = h.pickle_file("read", val)
+
+    @property
+    def gear_names(self):
+        return self._gear_names
+
+    @gear_names.setter
+    def gear_names(self, val):
+        self._gear_names = h.pickle_file("read", val)
 
     @property
     def thumb(self):
@@ -77,15 +87,34 @@ class Env:
         self._logo = val
 
     @property
-    def avail_stats(self):
-        return self._avail_stats
+    def char_stats(self):
+        return self._char_stats
 
-    @avail_stats.setter
-    def avail_stats(self, val):
-        self._avail_stats = h.pickle_file("read", val)
+    @char_stats.setter
+    def char_stats(self, val):
+        self._char_stats = val
 
+    @property
+    def gear_stats(self):
+        return self._gear_stats
 
+    @gear_stats.setter
+    def gear_stats(self, val):
+        self._gear_stats = val
 
+    @property
+    def stat_mapping(self):
+        return {
+            'atk': 'Attack',
+            'def': 'Defense',
+            'hp': 'HP',
+            'spd': 'Speed',
+            'crit': 'Crit Chance (%)',
+            'critDMG': 'Crit Damage (%)',
+            'res': 'Status ACC (%)',
+            'hit': 'Status RES (%)',
+            'dual': 'Dual'
+        }
 
 
 

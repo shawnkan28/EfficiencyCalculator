@@ -64,7 +64,7 @@ class CharInfo(qtw.QGroupBox):
         grid_layout = qtw.QGridLayout()
 
         # Add Label and Line Entry into grid
-        for i, stat in enumerate(self.e.avail_stats):
+        for i, stat in enumerate(self.e.char_stats):
             # declare line Edit
             le = qtw.QLineEdit()
 

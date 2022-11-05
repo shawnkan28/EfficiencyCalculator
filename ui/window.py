@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets as qtw, QtGui as qtg
 from ui.char_info import CharInfo
+from ui.efficiency import Efficiency
 
 
 class Window(qtw.QWidget):
@@ -24,6 +25,8 @@ class Window(qtw.QWidget):
 
         # add character info ui
         layout.addWidget(CharInfo(self.e))
+        # add Efficiency score calculator
+        layout.addWidget(Efficiency(self.e))
 
         self.setLayout(layout)
 

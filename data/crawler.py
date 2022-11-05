@@ -37,13 +37,8 @@ class Crawler:
                 img_url = entry['cardImage']['localFile']['childImageSharp']['gatsbyImageData']['images']['fallback']['src']
 
                 data = {'fullName': entry['fullName'], 'name': entry['shortName'].lower()}
-                stats = {status.lower(): value for status, value in entry['attributes'].items()}
+                stats = {self.e.stat_mapping[status]: value for status, value in entry['attributes'].items()}
                 data.update(stats)
-
-                data['crit dmg'] = data.pop('critdmg')
-                data['status res'] = data.pop('res')
-                data['status acc'] = data.pop('hit')
-                data['dual'] = data.pop('dual')
 
                 out_data.append(data)
 
@@ -61,19 +56,18 @@ class Crawler:
             h.pickle_file('write', fname=save_path, data=df)
 
             char_list = df.index.to_list()
-            stat_list = [x for x in df.columns.to_list() if x != "fullName"]
             h.pickle_file("write", fname=character_list, data=char_list)
-            h.pickle_file("write", fname=stat_path, data=stat_list)
         except:
             self.e.log.debug(f"{h.trace()} {traceback.format_exc()}")
             self.e.log.error(f"{h.trace()} Unable to crawl artery gear Character stats website. "
                              f"Will use local data if exist.")
 
-    def extract_gear_info(self, gear_main_path, gear_sub_path):
+    def extract_gear_info(self, gear_main_path, gear_sub_path, gear_path):
         """
         extract main stat for each gear. and min-max sub stat for each gear
         :param gear_main_path: path to store gear main stat
         :param gear_sub_path:  store gear sub stat min-max
+        :param gear_path: path to store gear stats
         :return:
         """
         try:
@@ -91,6 +85,7 @@ class Crawler:
 
             h.pickle_file("write", fname=gear_main_path, data=main_df)
             h.pickle_file("write", fname=gear_sub_path, data=sub_df)
+            h.pickle_file("write", fname=gear_path, data=list(main_df.columns))
         except:
             self.e.log.debug(f"{h.trace()} {traceback.format_exc()}")
             self.e.log.error(f"{h.trace()} Unable to crawl artery gear Gear "
