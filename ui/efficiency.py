@@ -4,9 +4,10 @@ import pandas as pd
 
 
 class Efficiency(qtw.QGroupBox):
-    def __init__(self, env):
+    def __init__(self, env, char):
         super().__init__("Efficiency Calculator")
         self.e = env
+        self.c = char
 
         # Show User Interface when called by parent
         self._init_ui()
@@ -30,7 +31,7 @@ class Efficiency(qtw.QGroupBox):
             if i == 0:  # if first column
                 self._sub_stat_line_edits(i, name)
 
-            # Row 2 - add
+            # Row 2 - Main Stat Name
             self.layout.addWidget(qtw.QLabel(name), 0, i + 1)
             # get all non-null stats for each gear
             stat_types = list(self.e.db_main.loc[self.e.db_main[name].notna()].index)
@@ -45,10 +46,14 @@ class Efficiency(qtw.QGroupBox):
 
                 # Add combobox to layout
                 self.layout.addWidget(gear_stat_cb, 1, i + 1)
+                # Reference
+                self.c.variable_gear_widgets[name] = gear_stat_cb
 
             # Row 3 - add efficiency score
             score = qtw.QLabel("0")
             self.layout.addWidget(score, 2, i + 1)
+            # Reference
+            self.c.eff_scores[name] = score
 
             self._sub_stat_line_edits(i + 1, name)
 
