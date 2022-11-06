@@ -64,7 +64,8 @@ class Env:
 
     @property
     def db_sub(self):
-        return self._db_sub
+        df = self._db_sub.apply(pd.to_numeric)
+        return df
 
     @db_sub.setter
     def db_sub(self, val):

@@ -3,6 +3,8 @@ This project was created thanks to the following video. https://www.youtube.com/
 Many thanks to https://www.youtube.com/c/TimaeuSS and his team for their google sheet that computes the efficiency of each gear.
 Please have a look at the original calculator @ https://tinyurl.com/gearcalcv1
 
+Crawled Information from https://www.prydwen.gg/
+
 Open QT Designer with
 ```powershell
 qt5-tools designer

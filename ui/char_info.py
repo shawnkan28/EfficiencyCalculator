@@ -51,6 +51,10 @@ class CharInfo(qtw.QGroupBox):
         layout.addWidget(char_cb)
         layout.addWidget(char_pix)
 
+        # Add Reference
+        self.c.char_widget = char_cb
+        self.c.image_widget = char_pix
+
         return layout
 
     def _stats(self, box_name):

@@ -73,4 +73,6 @@ class Efficiency(qtw.QGroupBox):
                 indexes.append(f"{gear_name}_{stat}_le"), widgets.append(eff_le)
                 # add to layout
                 self.layout.addWidget(eff_le, i+3, col_num)
+                # References
+                self.c.gear_widgets.loc[stat, gear_name] = eff_le
 
